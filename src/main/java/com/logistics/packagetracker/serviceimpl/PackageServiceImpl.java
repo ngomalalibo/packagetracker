@@ -94,7 +94,7 @@ public class PackageServiceImpl implements PackageService
     {
         Package aPackage = packageRepository.findById(id).orElseThrow(() -> new EntityException("Could not find entity with ID: " + id));
         aPackage.setStatus(PackageStatus.IN_TRANSIT);
-        TrackingDetails trackingDetails = new TrackingDetails(Package.generateTrackingCode(), PackageStatus.IN_TRANSIT, ZonedDateTime.now().toString(), "Fedex",
+        TrackingDetails trackingDetails = new TrackingDetails( PackageStatus.IN_TRANSIT, ZonedDateTime.now().toString(), "Fedex",
                                                               "Ikeja", "Lagos", "Nigeria", "100001");
         aPackage.getTrackingDetails().add(trackingDetails);
         packageRepository.save(aPackage);
@@ -108,7 +108,7 @@ public class PackageServiceImpl implements PackageService
     {
         Package aPackage = packageRepository.findById(id).orElseThrow(() -> new EntityException("Could not find package with ID: " + id));
         aPackage.setStatus(PackageStatus.WAREHOUSE);
-        TrackingDetails trackingDetails = new TrackingDetails(Package.generateTrackingCode(), PackageStatus.WAREHOUSE, ZonedDateTime.now().toString(), "Fedex",
+        TrackingDetails trackingDetails = new TrackingDetails( PackageStatus.WAREHOUSE, ZonedDateTime.now().toString(), "Fedex",
                                                               "Ikeja", "Lagos", "Nigeria", "100001");
         aPackage.getTrackingDetails().add(trackingDetails);
         packageRepository.save(aPackage);
@@ -121,7 +121,7 @@ public class PackageServiceImpl implements PackageService
     {
         Package aPackage = packageRepository.findById(id).orElseThrow(() -> new EntityException("Could not find package with ID: " + id));
         aPackage.setStatus(PackageStatus.DELIVERED);
-        TrackingDetails trackingDetails = new TrackingDetails(Package.generateTrackingCode(), PackageStatus.DELIVERED, ZonedDateTime.now().toString(), "Fedex",
+        TrackingDetails trackingDetails = new TrackingDetails( PackageStatus.DELIVERED, ZonedDateTime.now().toString(), "Fedex",
                                                               "Ikeja", "Lagos", "Nigeria", "100001");
         aPackage.getTrackingDetails().add(trackingDetails);
         Package retrievedTracker = packageRepository.findByTrackingCode(aPackage.getTrackingCode(), PackageStatus.PICKED_UP);
@@ -139,7 +139,7 @@ public class PackageServiceImpl implements PackageService
     {
         Package aPackage = packageRepository.findById(id).orElseThrow(() -> new EntityException("Could not find package with ID: " + id));
         aPackage.setStatus(PackageStatus.CANCELLED);
-        TrackingDetails trackingDetails = new TrackingDetails(Package.generateTrackingCode(), PackageStatus.CANCELLED, ZonedDateTime.now().toString(), "Fedex",
+        TrackingDetails trackingDetails = new TrackingDetails( PackageStatus.CANCELLED, ZonedDateTime.now().toString(), "Fedex",
                                                               "Ikeja", "Lagos", "Nigeria", "100001");
         aPackage.getTrackingDetails().add(trackingDetails);
         packageRepository.save(aPackage);

@@ -34,7 +34,7 @@ public class DatabaseInitialization
         {
             log.info("Initializing database");
             trackingDetails = initTrackerDetails();
-            aPackage = initTrackers();
+            aPackage = initPackage();
             
             log.info("Initialization completed");
         };
@@ -42,11 +42,10 @@ public class DatabaseInitialization
     
     private TrackingDetails initTrackerDetails()
     {
-        new TrackingDetails(aPackage.getTrackingCode(), PackageStatus.PICKED_UP, pickupDate(), faker.company().name(), faker.address().city(), faker.address().state(), faker.address().country(), faker.address().zipCode());
-        return null;
+        return new TrackingDetails(PackageStatus.PICKED_UP, pickupDate(), faker.company().name(), faker.address().city(), faker.address().state(), faker.address().country(), faker.address().zipCode());
     }
     
-    private Package initTrackers()
+    private Package initPackage()
     {
         new Package(null, Package.generateTrackingCode(), PackageStatus.PICKED_UP, pickupDate(), 16.7, deliveryDate(), "UPS", false, Collections.singletonList(trackingDetails));
         return null;
