@@ -3,14 +3,24 @@ package com.logistics.packagetracker.controller;
 import com.logistics.packagetracker.dto.PackageDTO;
 import com.logistics.packagetracker.dto.PackageMapper;
 import com.logistics.packagetracker.enumeration.PackageStatus;
+import com.logistics.packagetracker.response.SuccessResponse;
 import com.logistics.packagetracker.service.PackageService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.hateoas.EntityModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.stream.Collectors;
+
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 @RestController
 @RequestMapping("/api/package")
@@ -27,10 +37,22 @@ public class PackageController
         this.packageService = packageService;
     }
     
+    @Operation(summary = "Get all packages", description = "List of packages")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Found all packages",
+                    content = {@Content(mediaType = "application/json",
+                            schema = @Schema(implementation = PackageDTO.class))}),
+            @ApiResponse(responseCode = "404", description = "Packages not found",
+                    content = @Content)})
     @GetMapping("/getPackages")
-    public ResponseEntity<List<PackageDTO>> getAllPackages()
+    public ResponseEntity<EntityModel<List<PackageDTO>>> getAllPackages()
     {
-        return ResponseEntity.ok(packageService.findAllPackages().stream().map(s -> packageMapper.convertToDto(s)).collect(Collectors.toList()));
+        ResponseEntity<List<PackageDTO>> responseEntity = ResponseEntity.ok(packageService.findAllPackages().stream().map(s -> packageMapper.convertToDto(s)).collect(Collectors.toList()));
+        SuccessResponse sr = (SuccessResponse) responseEntity.getBody();
+        List<PackageDTO> packageDTOs = (List<PackageDTO>) sr.getObject();
+        EntityModel<List<PackageDTO>> resource = EntityModel.of(packageDTOs);
+        resource.add(linkTo(methodOn(this.getClass()).getAllPackages()).withSelfRel());
+        return new ResponseEntity<>(resource, HttpStatus.OK);
     }
     
     @GetMapping("/getPackage/{id}")
