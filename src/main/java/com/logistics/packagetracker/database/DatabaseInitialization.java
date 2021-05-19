@@ -5,6 +5,7 @@ import com.logistics.packagetracker.entity.Package;
 import com.logistics.packagetracker.entity.TrackingDetails;
 import com.logistics.packagetracker.enumeration.PackageStatus;
 import com.logistics.packagetracker.service.PackageService;
+import com.logistics.packagetracker.util.DateToLocalDateTimeConverter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
@@ -42,13 +43,14 @@ public class DatabaseInitialization
     
     private TrackingDetails initTrackerDetails()
     {
-        return new TrackingDetails(PackageStatus.PICKED_UP, pickupDate(), faker.company().name(), faker.address().city(), faker.address().state(), faker.address().country(), faker.address().zipCode());
+        return new TrackingDetails(PackageStatus.PICKED_UP, DateToLocalDateTimeConverter.stringToLocalDateTime(pickupDate()), faker.company().name(), faker.address().city(), faker.address().state(), faker.address().country(), faker.address().zipCode());
     }
     
     private Package initPackage()
     {
-        new Package(null, Package.generateTrackingCode(), PackageStatus.PICKED_UP, pickupDate(), 16.7, deliveryDate(), "UPS", false, Collections.singletonList(trackingDetails));
-        return null;
+        Package ups = new Package(null, Package.generateTrackingCode(), DateToLocalDateTimeConverter.stringToLocalDateTime(pickupDate()), 16.7, DateToLocalDateTimeConverter.stringToLocalDateTime(deliveryDate()), "UPS", trackingDetails, Collections.singletonList(trackingDetails));
+        packageService.pickUpPackage(ups);
+        return ups;
     }
     
     public String pickupDate()

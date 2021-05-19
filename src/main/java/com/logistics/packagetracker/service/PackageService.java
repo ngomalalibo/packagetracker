@@ -19,13 +19,13 @@ public interface PackageService
     long count();
     
     // tracking starts with pickup
-    PackageStatus pickUp(Package entity);
+    void pickUpPackage(Package entity);
     
-    PackageStatus sendPackage(String id);
+    void sendPackage(Package entity);
     
-    PackageStatus storePackage(String id);
+    void storePackage(Package entity);
     
-    PackageStatus deliverPackage(String id);
+    void deliverPackage(Package entity);
     
     PackageStatus cancelOrderById(String id);
     
