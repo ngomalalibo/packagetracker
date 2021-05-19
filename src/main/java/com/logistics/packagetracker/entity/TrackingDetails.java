@@ -3,7 +3,7 @@ package com.logistics.packagetracker.entity;
 import com.logistics.packagetracker.enumeration.PackageStatus;
 import lombok.*;
 
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 
 @Getter
 @Setter
@@ -13,7 +13,7 @@ import java.time.LocalDateTime;
 public class TrackingDetails
 {
     private PackageStatus status;
-    private LocalDateTime dateTime;
+    private String dateTime;
     private String source;
     private String city;
     private String state;

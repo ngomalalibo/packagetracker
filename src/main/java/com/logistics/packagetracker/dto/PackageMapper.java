@@ -1,39 +1,48 @@
 package com.logistics.packagetracker.dto;
 
 import com.logistics.packagetracker.entity.Package;
+import com.logistics.packagetracker.entity.PackageDTO;
 import com.logistics.packagetracker.entity.TrackingDetails;
+import com.logistics.packagetracker.exception.EntityNotFoundException;
 import com.logistics.packagetracker.repository.PackageRepository;
-import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 
 @Component
 public class PackageMapper
 {
     @Autowired
-    ModelMapper modelMapper;
-    
-    @Autowired
     PackageRepository packageRepository;
     
-    public PackageDTO convertToDto(Package aPackage)
+    static DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MMM-dd-yyyy HH:mm:ss a Z");
+    
+    public PackageDTO convertToDto(Package pack)
     {
-        return modelMapper.map(aPackage, PackageDTO.class);
+        return new PackageDTO(pack.getId(), pack.getTrackingCode(), pack.getCurrentTracker().getStatus(), pack.getCurrentTracker().getSource(), pack.getCurrentTracker().getCity(),
+                              pack.getCurrentTracker().getState(), pack.getCurrentTracker().getCountry(), pack.getCurrentTracker().getZip());
         
     }
     
     
-    public Package convertToEntity(PackageDTO packageDTO)
+    public Package convertToEntity(PackageDTO dto)
     {
-        Package aPackage = modelMapper.map(packageDTO, Package.class);
-        
-        packageRepository.findById(packageDTO.getId()).ifPresent(packageById -> packageById.setCurrentTracker(
-                new TrackingDetails(packageDTO.getStatus(), LocalDateTime.now(), packageDTO.getCurrentSource(),
-                                    packageDTO.getCurrentCity(), packageDTO.getCurrentState(),
-                                    packageDTO.getCurrentCountry(), packageDTO.getCurrentZipcode())));
-        
-        return aPackage;
+        Package pack = packageRepository.findById(dto.getId()).orElse(null);
+        if (pack != null)
+        {
+            TrackingDetails tracker = new TrackingDetails(dto.getStatus(), ZonedDateTime.now().format(formatter), dto.getCurrentSource(),
+                                                          dto.getCurrentCity(), dto.getCurrentState(),
+                                                          dto.getCurrentCountry(), dto.getCurrentZipcode());
+            pack.setCurrentTracker(tracker);
+            return pack;
+        }
+        else
+        {
+            throw new EntityNotFoundException("Unable convert DTO to package");
+        }
     }
+    
+    
 }

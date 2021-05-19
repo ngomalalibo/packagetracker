@@ -1,17 +1,18 @@
 package com.logistics.packagetracker.controller;
 
-import com.logistics.packagetracker.dto.PackageDTO;
+import com.google.common.base.Strings;
 import com.logistics.packagetracker.dto.PackageMapper;
+import com.logistics.packagetracker.entity.Package;
+import com.logistics.packagetracker.entity.PackageDTO;
+import com.logistics.packagetracker.entity.TrackingDetails;
 import com.logistics.packagetracker.enumeration.PackageStatus;
-import com.logistics.packagetracker.response.SuccessResponse;
+import com.logistics.packagetracker.exception.EntityNotFoundException;
+import com.logistics.packagetracker.response.ApiResponse;
 import com.logistics.packagetracker.service.PackageService;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.EntityModel;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -38,68 +39,68 @@ public class PackageController
     }
     
     @Operation(summary = "Get all packages", description = "List of packages")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Found all packages",
-                    content = {@Content(mediaType = "application/json",
-                            schema = @Schema(implementation = PackageDTO.class))}),
-            @ApiResponse(responseCode = "404", description = "Packages not found",
-                    content = @Content)})
-    @GetMapping("/getPackages")
-    public ResponseEntity<EntityModel<List<PackageDTO>>> getAllPackages()
+    
+    public ResponseEntity<?> getAllPackages()
     {
         ResponseEntity<List<PackageDTO>> responseEntity = ResponseEntity.ok(packageService.findAllPackages().stream().map(s -> packageMapper.convertToDto(s)).collect(Collectors.toList()));
-        SuccessResponse sr = (SuccessResponse) responseEntity.getBody();
-        List<PackageDTO> packageDTOs = (List<PackageDTO>) sr.getObject();
-        EntityModel<List<PackageDTO>> resource = EntityModel.of(packageDTOs);
-        resource.add(linkTo(methodOn(this.getClass()).getAllPackages()).withSelfRel());
-        return new ResponseEntity<>(resource, HttpStatus.OK);
+        List<PackageDTO> packageDTOs = responseEntity.getBody();
+        if (packageDTOs != null)
+        {
+            EntityModel<List<PackageDTO>> resource = EntityModel.of(packageDTOs);
+            resource.add(linkTo(methodOn(this.getClass()).getAllPackages()).withSelfRel());
+            
+            ApiResponse apiResponse = new ApiResponse(HttpStatus.OK, "Packages retrieved successfully", HttpStatus.OK.getReasonPhrase(), resource);
+            return ResponseEntity.ok().body(apiResponse);
+        }
+        ApiResponse response = new ApiResponse(HttpStatus.NO_CONTENT, "No Package found", HttpStatus.NO_CONTENT.getReasonPhrase(), null);
+        return buildResponseEntity(response);
     }
     
-    @GetMapping("/getPackage/{id}")
-    public ResponseEntity<PackageDTO> getPackage(@PathVariable String id)
+    @GetMapping("/tracker/{id}")
+    public ResponseEntity<Object> getPackage(@PathVariable String id)
     {
-        return ResponseEntity.ok(packageMapper.convertToDto(packageService.getPackageById(id)));
+        PackageDTO packageDTO = packageMapper.convertToDto(packageService.getPackageById(id));
+        if (packageDTO != null)
+        {
+            ApiResponse apiResponse = new ApiResponse(HttpStatus.OK, "Transaction completed successfully", HttpStatus.OK.getReasonPhrase(), packageDTO);
+            return buildResponseEntity(EntityModel.of(apiResponse, List.of(linkTo(methodOn(this.getClass()).getPackage(id)).withSelfRel())));
+        }
+        ApiResponse apiResponse = new ApiResponse(HttpStatus.BAD_REQUEST, "Error retrieving package", HttpStatus.BAD_REQUEST.getReasonPhrase(), null);
+        return buildResponseEntity(apiResponse);
     }
     
-    @PostMapping("/pickupPackage")
-    public ResponseEntity pickUp(@RequestBody PackageDTO packageDTO)
+    @PostMapping("/tracker/{id}")
+    public ResponseEntity<Object> updatePackage(@RequestBody TrackingDetails tracker, @PathVariable String id)
     {
-        packageService.pickUpPackage(packageMapper.convertToEntity(packageDTO));
-        return ResponseEntity.status(HttpStatus.CREATED).build();
+        String updId = packageService.trackPackage(tracker, id);
+        if (Strings.isNullOrEmpty(updId))
+        {
+            throw new EntityNotFoundException("Tracker not updated");
+        }
+        ApiResponse apiResponse = new ApiResponse(HttpStatus.OK, "Tracker updated successfully", HttpStatus.OK.getReasonPhrase(), updId);
+        return new ResponseEntity<>(apiResponse, apiResponse.getStatus());
     }
     
-    @PutMapping("/sendPackage/{id}")
-    public ResponseEntity sendPackage(@RequestBody PackageDTO packageDTO)
+    @GetMapping("/tracker/status/{status}")
+    public ResponseEntity<List<PackageDTO>> getPackage(@PathVariable PackageStatus status)
     {
-        packageService.sendPackage(packageMapper.convertToEntity(packageDTO));
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok(packageService.findByStatus(status).stream().map(d -> packageMapper.convertToDto(d)).collect(Collectors.toList()));
     }
     
-    @PutMapping("/storePackage/{id}")
-    public ResponseEntity storePackage(@RequestBody PackageDTO packageDTO)
+    @PostMapping("/tracker/createPackage")
+    public ResponseEntity<PackageDTO> createPackage(@RequestBody Package pack)
     {
-        packageService.storePackage(packageMapper.convertToEntity(packageDTO));
-        return ResponseEntity.ok().build();
+        Package created = packageService.createPackage(pack);
+        PackageDTO dto = packageMapper.convertToDto(created);
+        return ResponseEntity.ok(dto);
     }
     
-    @PutMapping("/deliverPackage/{id}")
-    public ResponseEntity deliverPackage(@RequestBody PackageDTO packageDTO)
+    private ResponseEntity<Object> buildResponseEntity(Object object)
     {
-        packageService.deliverPackage(packageMapper.convertToEntity(packageDTO));
-        return ResponseEntity.ok().build();
+        if (object instanceof ApiResponse)
+        {
+            return new ResponseEntity<Object>(object, new HttpHeaders(), ((ApiResponse) object).getStatus());
+        }
+        return new ResponseEntity<Object>(object, new HttpHeaders(), HttpStatus.ALREADY_REPORTED);
     }
-    
-    @PutMapping("/cancel/{id}")
-    public ResponseEntity cancelOrder(@PathVariable String id)
-    {
-        packageService.cancelOrderById(id);
-        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
-    }
-    
-    @GetMapping("/getTrackerByStatus/{status}")
-    public ResponseEntity<PackageDTO> getPackage(@PathVariable PackageStatus status)
-    {
-        return ResponseEntity.ok(packageMapper.convertToDto(packageService.findByStatus(status)));
-    }
-    
 }

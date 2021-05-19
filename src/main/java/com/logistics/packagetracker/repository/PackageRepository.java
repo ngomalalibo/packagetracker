@@ -6,20 +6,19 @@ import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.data.mongodb.repository.Query;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 
 @Repository
 public interface PackageRepository extends MongoRepository<Package, String>
 {
-    
     @Query("{'status':?0}")
-    Optional<Package> findByStatus(PackageStatus status);
-    
-    
-    Package findByTrackingDetailsStatus(PackageStatus status);
+    Optional<List<Package>> findByStatus(PackageStatus status);
     
     @Query("{'trackingCode':?0, 'status':?1}")
-    Package findByTrackingCode(String code, PackageStatus status);
+    Optional<List<Package>> findByStatusAndTrackingCode(PackageStatus status, String trackingCode);
+    
+    
     
     
 }

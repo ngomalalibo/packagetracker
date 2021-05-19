@@ -1,7 +1,6 @@
 package com.logistics.packagetracker.entity;
 
-import com.logistics.packagetracker.enumeration.PackageStatus;
-import com.logistics.packagetracker.util.DateToLocalDateTimeConverter;
+import com.logistics.packagetracker.util.DateConverter;
 import lombok.*;
 import org.hibernate.envers.Audited;
 import org.springframework.data.mongodb.core.index.Indexed;
@@ -9,6 +8,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -27,10 +27,9 @@ public class Package
     private String Id;
     @Indexed(unique = true)
     private String trackingCode;
-    private LocalDateTime createdDate;
+    private String createdDate;
     private double weight;
-    private LocalDateTime estDeliveryDate;
-    private String carrier;
+    private String estDeliveryDate;
     private TrackingDetails currentTracker;
     
     List<TrackingDetails> trackingDetails;
@@ -46,20 +45,5 @@ public class Package
             dd.append(sect[i].charAt(2));
         }
         return dd.toString().toUpperCase();
-    }
-    
-    public void setCreatedDate(String date)
-    {
-        this.createdDate = DateToLocalDateTimeConverter.stringToLocalDateTime(date);
-    }
-    
-    public void setEstDeliveryDate(String date)
-    {
-        this.estDeliveryDate = DateToLocalDateTimeConverter.stringToLocalDateTime(date);
-    }
-    
-    public void setWeight(String weight)
-    {
-        this.weight = Double.parseDouble(weight);
     }
 }
