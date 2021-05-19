@@ -7,6 +7,7 @@ import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
 import java.util.UUID;
 
 @Getter
@@ -30,6 +31,8 @@ public class Package
     private String estDeliveryDate;
     private String carrier;
     public boolean isCancelled;
+    
+    List<TrackingDetails> trackingDetails;
     
     public static String generateTrackingCode()
     {

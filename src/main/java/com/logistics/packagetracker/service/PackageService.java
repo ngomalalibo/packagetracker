@@ -1,6 +1,7 @@
 package com.logistics.packagetracker.service;
 
 import com.logistics.packagetracker.entity.Package;
+import com.logistics.packagetracker.entity.TrackingDetails;
 import com.logistics.packagetracker.enumeration.PackageStatus;
 
 import java.util.List;
@@ -29,5 +30,9 @@ public interface PackageService
     PackageStatus cancelOrderById(String id);
     
     Package findByStatus(PackageStatus status);
+    
+    Package findByTrackingCode(String code, PackageStatus status);
+    
+    Package findByTrackingDetailsStatus(PackageStatus status);
     
 }

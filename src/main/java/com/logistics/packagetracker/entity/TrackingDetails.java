@@ -9,11 +9,8 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @AllArgsConstructor
 @NoArgsConstructor
 @ToString
-@Document(collection = "trackerdetail")
 public class TrackingDetails
 {
-    @org.springframework.data.annotation.Id
-    private String Id;
     private String trackingCode;
     private PackageStatus status;
     private String dateTime;

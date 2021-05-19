@@ -5,7 +5,6 @@ import com.logistics.packagetracker.entity.Package;
 import com.logistics.packagetracker.entity.TrackingDetails;
 import com.logistics.packagetracker.enumeration.PackageStatus;
 import com.logistics.packagetracker.service.PackageService;
-import com.logistics.packagetracker.service.TrackerDetailsService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
@@ -13,6 +12,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import java.time.ZonedDateTime;
+import java.util.Collections;
 import java.util.Locale;
 
 @Slf4j
@@ -23,9 +23,6 @@ public class DatabaseInitialization
     
     @Autowired
     PackageService packageService;
-    
-    @Autowired
-    TrackerDetailsService trackerDetailsService;
     
     private Package aPackage;
     private TrackingDetails trackingDetails;
@@ -45,13 +42,13 @@ public class DatabaseInitialization
     
     private TrackingDetails initTrackerDetails()
     {
-        new TrackingDetails(null, aPackage.getTrackingCode(), PackageStatus.PICKED_UP, pickupDate(), faker.company().name(), faker.address().city(), faker.address().state(), faker.address().country(), faker.address().zipCode());
+        new TrackingDetails(aPackage.getTrackingCode(), PackageStatus.PICKED_UP, pickupDate(), faker.company().name(), faker.address().city(), faker.address().state(), faker.address().country(), faker.address().zipCode());
         return null;
     }
     
     private Package initTrackers()
     {
-        new Package(null, Package.generateTrackingCode(), PackageStatus.PICKED_UP, pickupDate(), 16.7, deliveryDate(), "UPS", false);
+        new Package(null, Package.generateTrackingCode(), PackageStatus.PICKED_UP, pickupDate(), 16.7, deliveryDate(), "UPS", false, Collections.singletonList(trackingDetails));
         return null;
     }
     
