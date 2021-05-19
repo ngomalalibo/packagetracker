@@ -2,7 +2,6 @@ package com.logistics.packagetracker.aspect;
 
 import com.logistics.packagetracker.entity.Package;
 import com.logistics.packagetracker.entity.TrackingDetails;
-import com.logistics.packagetracker.entity.TrackingLocation;
 import com.logistics.packagetracker.enumeration.PackageStatus;
 import com.logistics.packagetracker.service.TrackerDetailsService;
 import lombok.extern.slf4j.Slf4j;
@@ -49,7 +48,7 @@ public class LoggingAspect
         String method = joinPoint.getSignature().getName();
         Object[] args = joinPoint.getArgs();
         TrackingDetails details = new TrackingDetails(null, Package.generateTrackingCode(), status, ZonedDateTime.now().toString(), "Fedex",
-                                                      new TrackingLocation(null, "Ikeja", "Lagos", "Nigeria", "100001"));
+                                                     "Ikeja", "Lagos", "Nigeria", "100001");
         trackerDetailsService.save(details);
     }
 }

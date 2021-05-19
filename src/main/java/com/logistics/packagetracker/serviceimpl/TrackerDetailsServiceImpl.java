@@ -6,6 +6,7 @@ import com.logistics.packagetracker.enumeration.PackageStatus;
 import com.logistics.packagetracker.exception.EntityException;
 import com.logistics.packagetracker.repository.TrackerDetailsRepository;
 import com.logistics.packagetracker.service.TrackerDetailsService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -14,13 +15,8 @@ import java.util.Objects;
 @Service
 public class TrackerDetailsServiceImpl implements TrackerDetailsService
 {
-    final
+    @Autowired
     TrackerDetailsRepository trackerDetailsRepository;
-    
-    public TrackerDetailsServiceImpl(TrackerDetailsRepository trackerDetailsRepository)
-    {
-        this.trackerDetailsRepository = trackerDetailsRepository;
-    }
     
     
     @Override

@@ -18,7 +18,8 @@ import java.util.Objects;
 @Service
 public class PackageServiceImpl implements PackageService
 {
-    private final PackageRepository packageRepository;
+    @Autowired
+    private PackageRepository packageRepository;
     
     @Autowired
     private TrackerDetailsService trackerDetailsService;
