@@ -18,5 +18,8 @@ public class TrackingDetails
     private PackageStatus status;
     private String dateTime;
     private String source;
-    private TrackingLocation trackingLocation;
+    private String city;
+    private String state;
+    private String country;
+    private String zip;
 }

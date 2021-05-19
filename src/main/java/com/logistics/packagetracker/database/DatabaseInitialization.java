@@ -3,9 +3,7 @@ package com.logistics.packagetracker.database;
 import com.github.javafaker.Faker;
 import com.logistics.packagetracker.entity.Package;
 import com.logistics.packagetracker.entity.TrackingDetails;
-import com.logistics.packagetracker.entity.TrackingLocation;
 import com.logistics.packagetracker.enumeration.PackageStatus;
-import com.logistics.packagetracker.repository.TrackerLocationRepository;
 import com.logistics.packagetracker.service.PackageService;
 import com.logistics.packagetracker.service.TrackerDetailsService;
 import lombok.extern.slf4j.Slf4j;
@@ -29,12 +27,8 @@ public class DatabaseInitialization
     @Autowired
     TrackerDetailsService trackerDetailsService;
     
-    @Autowired
-    TrackerLocationRepository trackerLocationRepository;
-    
     private Package aPackage;
     private TrackingDetails trackingDetails;
-    private TrackingLocation trackingLocation;
     
     @Bean
     CommandLineRunner initDatabase()
@@ -42,7 +36,6 @@ public class DatabaseInitialization
         return args ->
         {
             log.info("Initializing database");
-            trackingLocation = initTrackerLocation();
             trackingDetails = initTrackerDetails();
             aPackage = initTrackers();
             
@@ -50,16 +43,9 @@ public class DatabaseInitialization
         };
     }
     
-    private TrackingLocation initTrackerLocation()
-    {
-        TrackingLocation trackingLocation = new TrackingLocation(null, faker.address().city(), faker.address().state(), faker.address().country(), faker.address().zipCode());
-        trackerLocationRepository.save(trackingLocation);
-        return trackingLocation;
-    }
-    
     private TrackingDetails initTrackerDetails()
     {
-        new TrackingDetails(null, aPackage.getTrackingCode(), PackageStatus.PICKED_UP, pickupDate(), faker.company().name(), trackingLocation);
+        new TrackingDetails(null, aPackage.getTrackingCode(), PackageStatus.PICKED_UP, pickupDate(), faker.company().name(), faker.address().city(), faker.address().state(), faker.address().country(), faker.address().zipCode());
         return null;
     }
     

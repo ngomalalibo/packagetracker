@@ -9,6 +9,9 @@ import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
 import org.springframework.context.event.EventListener;
+import org.springframework.data.envers.repository.support.EnversRevisionRepositoryFactoryBean;
+import org.springframework.data.mongodb.config.EnableMongoAuditing;
+import org.springframework.data.mongodb.repository.config.EnableMongoRepositories;
 
 @OpenAPIDefinition(info = @Info(title = "Package Tracker API Documentation",
         version = "v0.0.1",
@@ -16,6 +19,8 @@ import org.springframework.context.event.EventListener;
         license = @io.swagger.v3.oas.annotations.info.License(name = "Package Tracker",
                 url = "http://www.google.com")))
 @Slf4j
+@EnableMongoAuditing
+@EnableMongoRepositories(repositoryFactoryBeanClass = EnversRevisionRepositoryFactoryBean.class)
 @SpringBootApplication
 public class PackagetrackerApplication extends SpringBootServletInitializer
 {
