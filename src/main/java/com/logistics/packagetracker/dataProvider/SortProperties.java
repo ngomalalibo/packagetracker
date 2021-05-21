@@ -7,8 +7,8 @@ import lombok.Setter;
 @Setter
 public class SortProperties
 {
-    String propertyName;
-    boolean ascending;
+    private String propertyName;
+    private boolean ascending;
     
     public SortProperties(String propertyName, boolean ascending)
     {

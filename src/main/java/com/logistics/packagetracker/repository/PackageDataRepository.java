@@ -1,6 +1,7 @@
-package com.logistics.packagetracker.dataProvider;
+package com.logistics.packagetracker.repository;
 
 import com.google.common.base.Strings;
+import com.logistics.packagetracker.dataProvider.SortProperties;
 import com.logistics.packagetracker.database.MongoConnection;
 import com.logistics.packagetracker.entity.Package;
 import com.logistics.packagetracker.exception.CustomNullPointerException;
@@ -13,43 +14,43 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.bson.Document;
 import org.bson.conversions.Bson;
+import org.bson.types.ObjectId;
 import org.springframework.stereotype.Repository;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Pattern;
-import java.util.stream.Stream;
 
 @Slf4j
 @Getter
 @Repository
 public class PackageDataRepository
 {
-    private MongoConnection db;
+    private MongoConnection mongoConnection;
     
     public boolean isCollectionNullorEmpty()
     {
-        if (db.tracker == null)
+        if (mongoConnection.packages == null)
         {
             return true;
         }
-        return db.tracker.countDocuments() <= 0;
+        return mongoConnection.packages.countDocuments() <= 0;
     }
     
     public PackageDataRepository()
     {
-        db = new MongoConnection();
+        mongoConnection = new MongoConnection();
     }
     
-    public static java.lang.Package getObjectById(String objectId, MongoCollection<java.lang.Package> collection)
+    public Package getObjectById(String objectId, MongoCollection<Package> collection)
     {
-        AtomicReference<java.lang.Package> object = new AtomicReference<>();
+        AtomicReference<Package> object = new AtomicReference<>();
         Bson idQuery;
         try
         {
             if (!Objects.isNull(objectId))
             {
-                idQuery = Aggregates.match(Filters.eq("_id", objectId));
+                idQuery = Aggregates.match(Filters.eq("_id", new ObjectId(objectId)));
                 Optional.of(collection.aggregate(Collections.singletonList(idQuery))).ifPresent(a -> object.set(a.first()));
             }
         }
@@ -77,11 +78,15 @@ public class PackageDataRepository
             {
                 filter = Aggregates.match(Filters.eq(key, value));
             }
+            if (key.equals("_id"))
+            {
+                filter = Aggregates.match(Filters.eq(key, new ObjectId(value)));
+            }
             LinkedList<Bson> pipeline = new LinkedList<>();
             pipeline.add(filter);
             sortOrder.forEach(ps -> pipeline.add(Aggregates.sort(ps.isAscending() ? Sorts.ascending(ps.getPropertyName()) : Sorts.descending(ps.getPropertyName()))));
             
-            Optional<AggregateIterable<Package>> aggregate = Optional.of(db.tracker.aggregate(pipeline));
+            Optional<AggregateIterable<Package>> aggregate = Optional.of(mongoConnection.packages.aggregate(pipeline));
             aggregate.get().iterator().forEachRemaining(searchResult::add);
             
             return searchResult;
@@ -114,17 +119,17 @@ public class PackageDataRepository
         
     }
     
-    public Stream<Package> getAllOfEntity()
+    public List<Package> getAllOfEntity()
     {
         if (!isCollectionNullorEmpty())
         {
             //collection is already set by constructor
             List<Package> allRecords = new ArrayList<>();
-            Optional.of(db.tracker.find()).ifPresent(s ->
-                                                                     {
-                                                                         s.iterator().forEachRemaining(allRecords::add);
-                                                                     });
-            return allRecords.stream();
+            Optional.of(mongoConnection.packages.find()).ifPresent(s ->
+                                                                   {
+                                                                       s.iterator().forEachRemaining(allRecords::add);
+                                                                   });
+            return new ArrayList<>(allRecords);
         }
         else
         {
@@ -156,7 +161,7 @@ public class PackageDataRepository
             pipeline.add(match);
             sort.forEach(ps -> pipeline.add(Aggregates.sort(ps.isAscending() ? Sorts.ascending(ps.getPropertyName()) : Sorts.descending(ps.getPropertyName()))));
             
-            Optional<AggregateIterable<Package>> aggregate = Optional.of(db.tracker.aggregate(pipeline));
+            Optional<AggregateIterable<Package>> aggregate = Optional.of(mongoConnection.packages.aggregate(pipeline));
             aggregate.get().iterator().forEachRemaining(searchResult::add);
             
             return searchResult;
@@ -166,4 +171,16 @@ public class PackageDataRepository
             throw new CustomNullPointerException("Collection is null or empty");
         }
     }
+    
+    public boolean existsByID(String id)
+    {
+        Package objectById = getObjectById(id, mongoConnection.packages);
+        return objectById != null;
+    }
+    
+    public long count()
+    {
+        return getAllOfEntity().size();
+    }
+    
 }

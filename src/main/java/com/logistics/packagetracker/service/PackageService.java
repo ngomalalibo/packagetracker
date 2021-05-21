@@ -1,7 +1,7 @@
 package com.logistics.packagetracker.service;
 
 import com.logistics.packagetracker.entity.Package;
-import com.logistics.packagetracker.entity.TrackingDetails;
+import com.logistics.packagetracker.entity.TrackingDetail;
 import com.logistics.packagetracker.enumeration.PackageStatus;
 import org.springframework.stereotype.Service;
 
@@ -18,13 +18,16 @@ public interface PackageService
     
     long count();
     
-    String trackPackage(TrackingDetails track, String id);
+    String trackPackage(TrackingDetail track, String id);
     
-    // tracking starts with pickup
     Package createPackage(Package entity);
     
-    List<Package> findByStatusAndTrackingCode(PackageStatus status, String code);
+    boolean isPickedUp(String id);
+    
+    boolean isDelivered(String id);
     
     List<Package> findByStatus(PackageStatus status);
+    
+    TrackingDetail getCurrentTracker(String id);
     
 }

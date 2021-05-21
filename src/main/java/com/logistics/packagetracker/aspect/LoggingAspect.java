@@ -1,5 +1,6 @@
 package com.logistics.packagetracker.aspect;
 
+import com.logistics.packagetracker.entity.Package;
 import com.logistics.packagetracker.enumeration.PackageStatus;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.JoinPoint;
@@ -13,12 +14,11 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class LoggingAspect
 {
-    
     @AfterReturning(value = "@annotation(Loggable)", returning = "returnValue")
     public void logPackageMethodCall(JoinPoint joinPoint, Object returnValue)
     {
-        PackageStatus status = (PackageStatus) returnValue;
-        logTracker(joinPoint, status);
+        Package pack = (Package) returnValue;
+        logTracker(joinPoint, pack);
         log.info("Logged tracker details via aspect");
     }
     
@@ -29,7 +29,7 @@ public class LoggingAspect
         log.info("Logged via aspect after throwing");
     }
     
-    private void logTracker(JoinPoint joinPoint, PackageStatus status)
+    private void logTracker(JoinPoint joinPoint, Package pack)
     {
         String method = joinPoint.getSignature().getName();
         Object[] args = joinPoint.getArgs();

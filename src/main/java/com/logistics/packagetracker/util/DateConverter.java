@@ -10,8 +10,6 @@ import java.util.TimeZone;
 
 public class DateConverter
 {
-    static SimpleDateFormat normal = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-    static SimpleDateFormat custom = new SimpleDateFormat("MMM-dd-yyyy HH:mm:ss a Z");
     public static DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MMM-dd-yyyy HH:mm:ss a Z");
     
     public static String zonedDateTimeToString(ZonedDateTime zdt)

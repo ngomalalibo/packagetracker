@@ -1,5 +1,6 @@
 package com.logistics.packagetracker.exception;
 
+import com.logistics.packagetracker.response.ApiException;
 import com.logistics.packagetracker.response.ApiResponse;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
@@ -12,6 +13,7 @@ import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingPathVariableException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
+import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -26,8 +28,7 @@ import javax.validation.ConstraintViolationException;
 import java.util.ArrayList;
 import java.util.List;
 
-@Order(Ordered.HIGHEST_PRECEDENCE)
-@RestControllerAdvice
+@ControllerAdvice
 public class CustomResponseEntityExceptionHandler extends ResponseEntityExceptionHandler
 {
     @Override
@@ -44,46 +45,45 @@ public class CustomResponseEntityExceptionHandler extends ResponseEntityExceptio
             errors.add(error.getObjectName() + ": " + error.getDefaultMessage());
         }
         
-        ApiResponse apiResponse =
-                new ApiResponse(HttpStatus.BAD_REQUEST, ex.getLocalizedMessage(), errors, null);
+        ApiException apiResponse =
+                new ApiException(HttpStatus.BAD_REQUEST, ex.getLocalizedMessage(), errors);
         
-        return buildResponseEntity(apiResponse);
+        return buildResponseEntity(apiResponse, HttpStatus.BAD_REQUEST);
     }
     
-    @ResponseStatus(HttpStatus.NOT_FOUND)
     @ExceptionHandler(EntityNotFoundException.class)
     protected ResponseEntity<Object> handleEntityNotFound(EntityNotFoundException ex)
     {
-        ApiResponse apiResponse =
-                new ApiResponse(HttpStatus.NOT_FOUND, ex.getLocalizedMessage(), ex.getMessage(), null);
-        return buildResponseEntity(apiResponse);
+        ApiException apiResponse =
+                new ApiException(HttpStatus.NOT_FOUND, ex.getLocalizedMessage(), ex.getMessage());
+        return buildResponseEntity(apiResponse, HttpStatus.NOT_FOUND);
     }
     
     @ExceptionHandler(NullPointerException.class)
     protected ResponseEntity<Object> handleNullPointerExceptionInternal(
             NullPointerException ex)
     {
-        ApiResponse apiResponse =
-                new ApiResponse(HttpStatus.NOT_FOUND, ex.getLocalizedMessage(), ex.getMessage(), null);
-        return buildResponseEntity(apiResponse);
+        ApiException apiResponse =
+                new ApiException(HttpStatus.NOT_FOUND, ex.getLocalizedMessage(), ex.getMessage());
+        return buildResponseEntity(apiResponse, HttpStatus.NOT_FOUND);
     }
     
     @ExceptionHandler(CustomNullPointerException.class)
     protected ResponseEntity<Object> handleCustomNullPointerExceptionInternal(
             CustomNullPointerException ex)
     {
-        ApiResponse apiResponse =
-                new ApiResponse(HttpStatus.NOT_FOUND, ex.getLocalizedMessage(), ex.getMessage(), null);
-        return buildResponseEntity(apiResponse);
+        ApiException apiResponse =
+                new ApiException(HttpStatus.NOT_FOUND, ex.getLocalizedMessage(), ex.getMessage());
+        return buildResponseEntity(apiResponse, HttpStatus.NOT_FOUND);
     }
     
     @ExceptionHandler(NonUniqueResultException.class)
     protected ResponseEntity<Object> handleNonUniqueResultExceptionInternal(
             NonUniqueResultException ex)
     {
-        ApiResponse apiResponse =
-                new ApiResponse(HttpStatus.NOT_ACCEPTABLE, ex.getLocalizedMessage(), ex.getMessage(), null);
-        return buildResponseEntity(apiResponse);
+        ApiException apiResponse =
+                new ApiException(HttpStatus.NOT_ACCEPTABLE, ex.getLocalizedMessage(), ex.getMessage());
+        return buildResponseEntity(apiResponse,HttpStatus.NOT_ACCEPTABLE);
     }
     
     @ExceptionHandler({ConstraintViolationException.class})
@@ -96,10 +96,10 @@ public class CustomResponseEntityExceptionHandler extends ResponseEntityExceptio
             errors.add(violation.getRootBeanClass().getName() + " " +
                                violation.getPropertyPath() + ": " + violation.getMessage());
         }
-        
-        ApiResponse apiResponse =
-                new ApiResponse(HttpStatus.BAD_REQUEST, ex.getLocalizedMessage(), errors, null);
-        return buildResponseEntity(apiResponse);
+    
+        ApiException apiResponse =
+                new ApiException(HttpStatus.BAD_REQUEST, ex.getLocalizedMessage(), errors);
+        return buildResponseEntity(apiResponse, HttpStatus.BAD_REQUEST);
     }
     
     @ExceptionHandler({MethodArgumentTypeMismatchException.class})
@@ -108,10 +108,10 @@ public class CustomResponseEntityExceptionHandler extends ResponseEntityExceptio
     {
         String error =
                 ex.getName() + " should be of type " + ex.getRequiredType().getName();
-        
-        ApiResponse apiResponse =
-                new ApiResponse(HttpStatus.BAD_REQUEST, ex.getLocalizedMessage(), error, null);
-        return buildResponseEntity(apiResponse);
+    
+        ApiException apiResponse =
+                new ApiException(HttpStatus.BAD_REQUEST, ex.getLocalizedMessage(), error);
+        return buildResponseEntity(apiResponse, HttpStatus.BAD_REQUEST);
     }
     
     @Override
@@ -126,10 +126,10 @@ public class CustomResponseEntityExceptionHandler extends ResponseEntityExceptio
         builder.append(
                 " method is not supported for this request. Supported methods are ");
         ex.getSupportedHttpMethods().forEach(t -> builder.append(t + " "));
-        
-        ApiResponse apiResponse = new ApiResponse(HttpStatus.METHOD_NOT_ALLOWED,
-                                                  ex.getLocalizedMessage(), builder.toString(), null);
-        return buildResponseEntity(apiResponse);
+    
+        ApiException apiResponse = new ApiException(HttpStatus.METHOD_NOT_ALLOWED,
+                                                  ex.getLocalizedMessage(), builder.toString());
+        return buildResponseEntity(apiResponse, HttpStatus.METHOD_NOT_ALLOWED);
     }
     
     @Override
@@ -137,8 +137,8 @@ public class CustomResponseEntityExceptionHandler extends ResponseEntityExceptio
             MissingPathVariableException ex, HttpHeaders headers, HttpStatus status, WebRequest request)
     {
         String template = "Missing parameter:  %s. Missing parameter: %s";
-        ApiResponse apiResponse =
-                new ApiResponse(HttpStatus.BAD_REQUEST, ex.getLocalizedMessage(), String.format(template, ex.getMessage(), ex.getParameter()), null);
+        ApiException apiResponse =
+                new ApiException(HttpStatus.BAD_REQUEST, ex.getLocalizedMessage(), String.format(template, ex.getMessage(), ex.getParameter()));
         return handleExceptionInternal(
                 ex, apiResponse, headers, apiResponse.getStatus(), request);
     }
@@ -149,22 +149,30 @@ public class CustomResponseEntityExceptionHandler extends ResponseEntityExceptio
             HttpStatus status, WebRequest request)
     {
         String error = ex.getParameterName() + " parameter is missing";
-        
-        ApiResponse apiResponse =
-                new ApiResponse(HttpStatus.BAD_REQUEST, ex.getLocalizedMessage(), error, null);
-        return buildResponseEntity(apiResponse);
+    
+        ApiException apiResponse =
+                new ApiException(HttpStatus.BAD_REQUEST, ex.getLocalizedMessage(), error);
+        return buildResponseEntity(apiResponse, HttpStatus.BAD_REQUEST);
     }
     
     @ExceptionHandler({Exception.class})
     public ResponseEntity<Object> handleAll(Exception ex, WebRequest request)
     {
-        ApiResponse apiResponse = new ApiResponse(
-                HttpStatus.INTERNAL_SERVER_ERROR, ex.getLocalizedMessage(), "error occurred", null);
-        return buildResponseEntity(apiResponse);
+        ApiException apiResponse = new ApiException(
+                HttpStatus.INTERNAL_SERVER_ERROR, ex.getLocalizedMessage(), "error occurred");
+        return buildResponseEntity(apiResponse, HttpStatus.INTERNAL_SERVER_ERROR);
     }
     
-    private ResponseEntity<Object> buildResponseEntity(ApiResponse apiResponse)
+    @ExceptionHandler({PackageStateException.class})
+    public ResponseEntity<Object> handlePackageCase(PackageStateException ex)
     {
-        return new ResponseEntity<Object>(apiResponse, new HttpHeaders(), apiResponse.getStatus());
+        ApiException apiResponse = new ApiException(
+                HttpStatus.NOT_ACCEPTABLE, ex.getLocalizedMessage(), "error occurred");
+        return buildResponseEntity(apiResponse, HttpStatus.NOT_ACCEPTABLE);
+    }
+    
+    private ResponseEntity<Object> buildResponseEntity(ApiException apiResponse, HttpStatus status)
+    {
+        return new ResponseEntity<Object>(apiResponse, new HttpHeaders(), status);
     }
 }

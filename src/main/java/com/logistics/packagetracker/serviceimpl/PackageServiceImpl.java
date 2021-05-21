@@ -2,41 +2,56 @@ package com.logistics.packagetracker.serviceimpl;
 
 import com.google.common.base.Strings;
 import com.logistics.packagetracker.aspect.Loggable;
-import com.logistics.packagetracker.dataProvider.PackageDataRepository;
+import com.logistics.packagetracker.dataProvider.SortProperties;
 import com.logistics.packagetracker.database.MongoConnection;
 import com.logistics.packagetracker.entity.Package;
-import com.logistics.packagetracker.entity.TrackingDetails;
+import com.logistics.packagetracker.entity.TrackingDetail;
 import com.logistics.packagetracker.enumeration.PackageStatus;
 import com.logistics.packagetracker.exception.EntityNotFoundException;
-import com.logistics.packagetracker.repository.PackageRepository;
+import com.logistics.packagetracker.exception.PackageStateException;
+import com.logistics.packagetracker.repository.PackageDataRepository;
 import com.logistics.packagetracker.service.PackageService;
 import com.mongodb.client.AggregateIterable;
+import com.mongodb.client.MongoCursor;
 import com.mongodb.client.model.Aggregates;
 import com.mongodb.client.model.Filters;
+import com.mongodb.client.model.Sorts;
 import com.mongodb.client.model.Updates;
+import com.mongodb.client.result.InsertOneResult;
+import com.mongodb.client.result.UpdateResult;
+import org.bson.Document;
 import org.bson.conversions.Bson;
-import org.modelmapper.ModelMapper;
+import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
+import static com.mongodb.client.model.Projections.*;
+
 @Service
 public class PackageServiceImpl implements PackageService
 {
-   @Autowired
-    private PackageRepository packageRepository;
+    @Autowired
+    private PackageDataRepository packageDataRepository;
     
     @Autowired
-    PackageDataRepository packageDataRepository;
+    private MongoConnection mongoConnection;
     
-    @Autowired
-    MongoConnection mongoConnection;
+    public PackageDataRepository getPackageDataRepository()
+    {
+        return packageDataRepository;
+    }
+    
+    public MongoConnection getMongoConnection()
+    {
+        return mongoConnection;
+    }
     
     @Override
     public List<Package> findAllPackages()
     {
-        return packageRepository.findAll();
+        return packageDataRepository.getAllOfEntity();
     }
     
     @Override
@@ -46,42 +61,45 @@ public class PackageServiceImpl implements PackageService
         {
             throw new EntityNotFoundException("Provide a valid package ID");
         }
-        return packageRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("Provide a valid package ID: " + id));
+        return packageDataRepository.getObjectById(id, mongoConnection.packages);
     }
     
     @Override
     public boolean existsById(String id)
     {
-        if (Strings.isNullOrEmpty(id))
-        {
-            throw new EntityNotFoundException("Provide a valid package ID");
-        }
-        return packageRepository.existsById(id);
+        return packageDataRepository.existsByID(id);
     }
     
     @Override
     public long count()
     {
-        return packageRepository.count();
+        return packageDataRepository.count();
     }
     
     @Override
-    public String trackPackage(TrackingDetails track, String id)
+    public String trackPackage(TrackingDetail track, String id)
     {
-        if (track == null)
+        if (track != null && !Strings.isNullOrEmpty(id))
         {
-            Bson filter = Filters.eq("_id", id);
-            Bson match1 = Aggregates.match(filter);
-            Bson updArray = Updates.push("trackingDetails", track);
-            List<Bson> pipeline = List.of(match1, updArray);
-            AggregateIterable<Package> aggregate = mongoConnection.tracker.aggregate(pipeline);
-            if (aggregate.iterator().hasNext())
+            if (isPickedUp(id) && track.getStatus() == PackageStatus.PICKED_UP)
+            {
+                throw new PackageStateException("Package has been picked up.");
+            }
+            else if (isDelivered(id) && track.getStatus() == PackageStatus.DELIVERED)
+            {
+                throw new PackageStateException("Package has been delivered.");
+            }
+            
+            Bson match = Filters.eq("_id", new ObjectId(id));
+            Bson updArray = Updates.combine(Updates.push("trackingDetails", track), Updates.set("status", track.getStatus()));
+            UpdateResult updateResult = mongoConnection.packages.updateOne(match, updArray);
+            if (updateResult.getModifiedCount() >= 1)
             {
                 return id;
             }
             else
             {
-                throw new EntityNotFoundException("Could not update entity with ID: " + id);
+                throw new EntityNotFoundException("Could not update package with ID: " + id);
             }
         }
         else
@@ -95,24 +113,80 @@ public class PackageServiceImpl implements PackageService
     @Override
     public Package createPackage(Package entity)
     {
-        Package saved = packageRepository.save(entity);
-        
-        if (packageRepository.findById(saved.getId()).isPresent())
+        InsertOneResult result = mongoConnection.packages.insertOne(entity);
+        if (result.getInsertedId() != null)
         {
-            return saved;
+            ObjectId value = result.getInsertedId().asObjectId().getValue();
+            entity.setId(value.toHexString());
+            return entity;
         }
         return null;
     }
     
     @Override
-    public List<Package> findByStatusAndTrackingCode(PackageStatus status, String code)
+    public boolean isPickedUp(String id)
     {
-        return packageRepository.findByStatusAndTrackingCode(status, code).orElseThrow(() -> new EntityNotFoundException("Could not find package with status: " + status));
+        Bson match = Aggregates.match(Filters.and(Filters.eq("_id", new ObjectId(id))));
+        Bson unwind = Aggregates.unwind("$trackingDetails");
+        Bson proj = Aggregates.project(fields(include("trackingDetails"), excludeId()));
+        Bson match2 = Aggregates.match(Filters.in("trackingDetails.status", List.of(PackageStatus.PICKED_UP.toString())));
+        List<Bson> pipeline = List.of(match, unwind, proj, match2);
+        AggregateIterable<Document> aggregate = mongoConnection.collection.aggregate(pipeline);
+        if (aggregate.iterator().hasNext())
+        {
+            return true;
+        }
+        return false;
+    }
+    
+    @Override
+    public boolean isDelivered(String id)
+    {
+        Bson match = Aggregates.match(Filters.and(Filters.eq("_id", new ObjectId(id))));
+        Bson unwind = Aggregates.unwind("$trackingDetails");
+        Bson proj = Aggregates.project(fields(include("trackingDetails"), excludeId()));
+        Bson match2 = Aggregates.match(Filters.in("trackingDetails.status", List.of(PackageStatus.DELIVERED.toString())));
+        List<Bson> pipeline = List.of(match, unwind, proj, match2);
+        AggregateIterable<Document> aggregate = mongoConnection.collection.aggregate(pipeline);
+        if (aggregate.iterator().hasNext())
+        {
+            return true;
+        }
+        return false;
     }
     
     @Override
     public List<Package> findByStatus(PackageStatus status)
     {
-        return packageRepository.findByStatus(status).orElseThrow(() -> new EntityNotFoundException("No package with status: " + status));
+        return packageDataRepository.getPackageByAnyProperty("status", status.toString(), List.of(new SortProperties("createdDate", false)));
+    }
+    
+    @Override
+    public TrackingDetail getCurrentTracker(String id)
+    {
+        
+        Bson match = Aggregates.match(Filters.eq("_id", new ObjectId(id)));
+        Bson unwind = Aggregates.unwind("$trackingDetails");
+        Bson projB = Aggregates.project(fields(include("trackingDetails"), excludeId()));
+        Bson sort = Aggregates.sort(Sorts.descending("trackingDetails.dateTime"));
+        Bson limit = Aggregates.limit(1);
+        
+        List<Bson> pipeline = List.of(match, unwind, projB, sort, limit);
+        
+        AggregateIterable<Document> aggregate = mongoConnection.collection.aggregate(pipeline);
+        TrackingDetail td = new TrackingDetail();
+        MongoCursor<Document> iterator = aggregate.iterator();
+        if (aggregate.iterator().hasNext())
+        {
+            Document next = iterator.next();
+            Document s = (Document) next.get("trackingDetails");
+            td = new TrackingDetail(PackageStatus.valueOf(s.getString("status")),
+                                    s.getLong("dateTime"),
+                                    s.getString("source"),
+                                    s.getString("city"),
+                                    s.getString("state"), s.getString("country"), s.getString("zip"));
+        }
+        
+        return td;
     }
 }

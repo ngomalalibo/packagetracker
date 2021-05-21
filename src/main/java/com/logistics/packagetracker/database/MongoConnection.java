@@ -1,5 +1,7 @@
 package com.logistics.packagetracker.database;
 
+import com.logistics.packagetracker.codec.PackageStatusCodec;
+import com.logistics.packagetracker.codec.StringObjectIdCodec;
 import com.logistics.packagetracker.entity.Package;
 import com.mongodb.ConnectionString;
 import com.mongodb.MongoClientSettings;
@@ -13,7 +15,10 @@ import org.bson.Document;
 import org.bson.codecs.configuration.CodecProvider;
 import org.bson.codecs.configuration.CodecRegistries;
 import org.bson.codecs.configuration.CodecRegistry;
+import org.bson.codecs.pojo.ClassModel;
+import org.bson.codecs.pojo.ClassModelBuilder;
 import org.bson.codecs.pojo.PojoCodecProvider;
+import org.bson.codecs.pojo.PropertyModelBuilder;
 import org.springframework.context.event.ContextStoppedEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
@@ -25,14 +30,15 @@ import java.util.HashSet;
 @Component
 public class MongoConnection
 {
-    protected final String DBNAME = "packagetracker";
-    protected static final String DB_ORGANIZATION = "Package Tracker.";
-    protected static final String DB_TRACKER = "tracker";
-    protected static MongoClient mongo = null;
-    protected static MongoDatabase db;
-    public MongoCollection<Package> tracker;
+    private final String DBNAME = "packagetracker";
+    private final String DB_ORGANIZATION = "Package Tracker.";
+    private final String DB_PACKAGES = "packages";
+    private MongoClient mongo = null;
+    private MongoDatabase db;
+    public MongoCollection<Package> packages;
+    public MongoCollection<Document> collection;
     
-    protected String DBSTR = System.getenv().get("PACKAGETRACKERDBURL");
+    private String DBSTR = System.getenv().get("PACKAGETRACKERDBURL");
     private HashSet<String> cols = new HashSet<>();
     
     public MongoConnection()
@@ -42,15 +48,22 @@ public class MongoConnection
     
     public static CodecRegistry getCodecRegistry()
     {
+        ClassModelBuilder<Package> classModelBuilder = ClassModel.builder(Package.class);
+        PropertyModelBuilder<String> idPropertyModelBuilder =
+                (PropertyModelBuilder<String>) classModelBuilder.getProperty("id");
+        idPropertyModelBuilder.codec(new StringObjectIdCodec());
+        
         final CodecRegistry defaultCodecRegistry = MongoClientSettings.getDefaultCodecRegistry();
-        final CodecProvider pojoCodecProvider = PojoCodecProvider.builder()
+        final CodecProvider pojoCodecProvider = PojoCodecProvider.builder().register(classModelBuilder.build())
                                                                  .register("com.logistics.packagetracker.entity", "com.logistics.packagetracker.enumeration").automatic(true).build();
         final CodecRegistry cvePojoCodecRegistry = CodecRegistries.fromProviders(pojoCodecProvider);
-        return CodecRegistries.fromRegistries(defaultCodecRegistry, cvePojoCodecRegistry);
+        final CodecRegistry customEnumCodecs = CodecRegistries.fromCodecs(new PackageStatusCodec());
+        return CodecRegistries.fromRegistries(defaultCodecRegistry, customEnumCodecs, cvePojoCodecRegistry);
     }
     
     public MongoDatabase connectToDB()
     {
+        System.out.println("DBURL ->" + DBSTR);
         ConnectionString connectionString = new ConnectionString(DBSTR);
         
         MongoClientSettings settings = MongoClientSettings.builder()
@@ -67,7 +80,8 @@ public class MongoConnection
             getDBStats();
         }
         
-        tracker = db.getCollection(DB_TRACKER, Package.class).withCodecRegistry(pojoCodecRegistry);
+        packages = db.getCollection(DB_PACKAGES, Package.class).withCodecRegistry(pojoCodecRegistry);
+        collection = db.getCollection(DB_PACKAGES, Document.class).withCodecRegistry(pojoCodecRegistry);
         return db;
     }
     

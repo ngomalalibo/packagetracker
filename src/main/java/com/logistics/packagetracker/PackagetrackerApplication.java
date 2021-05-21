@@ -1,6 +1,5 @@
 package com.logistics.packagetracker;
 
-import com.logistics.packagetracker.database.MongoConnection;
 import io.swagger.v3.oas.annotations.OpenAPIDefinition;
 import io.swagger.v3.oas.annotations.info.Info;
 import lombok.extern.slf4j.Slf4j;
@@ -9,11 +8,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
-import org.springframework.context.event.ContextStoppedEvent;
 import org.springframework.context.event.EventListener;
-import org.springframework.data.envers.repository.support.EnversRevisionRepositoryFactoryBean;
-import org.springframework.data.mongodb.config.EnableMongoAuditing;
-import org.springframework.data.mongodb.repository.config.EnableMongoRepositories;
 
 @OpenAPIDefinition(info = @Info(title = "Package Tracker API Documentation",
         version = "v0.0.1",

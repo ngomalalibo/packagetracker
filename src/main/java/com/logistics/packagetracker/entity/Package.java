@@ -1,49 +1,59 @@
 package com.logistics.packagetracker.entity;
 
-import com.logistics.packagetracker.util.DateConverter;
-import lombok.*;
-import org.hibernate.envers.Audited;
-import org.springframework.data.mongodb.core.index.Indexed;
-import org.springframework.data.mongodb.core.mapping.Document;
-import org.springframework.stereotype.Component;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.logistics.packagetracker.enumeration.PackageStatus;
+import com.logistics.packagetracker.service.PackageService;
+import com.logistics.packagetracker.serviceimpl.PackageServiceImpl;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
+import org.bson.codecs.pojo.annotations.BsonProperty;
 
-import java.time.LocalDateTime;
-import java.time.ZonedDateTime;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
 @Getter
 @Setter
-@AllArgsConstructor
 @NoArgsConstructor
 @ToString
-@Component
-@Audited
-@Document(collection = "tracker")
 public class Package
 {
-    
-    @org.springframework.data.annotation.Id
-    private String Id;
-    @Indexed(unique = true)
+    @BsonProperty("_id")
+    @JsonProperty("_id")
+    private String id;
     private String trackingCode;
+    private PackageStatus status;
     private String createdDate;
     private double weight;
     private String estDeliveryDate;
-    private TrackingDetails currentTracker;
     
-    List<TrackingDetails> trackingDetails;
+    List<TrackingDetail> trackingDetails = new ArrayList<>();
     
-    public static String generateTrackingCode()
+    public Package(String trackingCode, PackageStatus status, String createdDate, double weight, String estDeliveryDate, List<TrackingDetail> trackingDetails)
     {
-        
-        String raw = UUID.randomUUID().toString();
-        String[] sect = raw.split("-");
-        StringBuilder dd = new StringBuilder();
-        for (int i = 0; i < sect.length; i++)
-        {
-            dd.append(sect[i].charAt(2));
-        }
-        return dd.toString().toUpperCase();
+        this.trackingCode = trackingCode;
+        this.status = status;
+        this.createdDate = createdDate;
+        this.weight = weight;
+        this.estDeliveryDate = estDeliveryDate;
+        this.trackingDetails = trackingDetails;
     }
+    
+    public boolean equals(Package pack)
+    {
+        PackageService packageService = new PackageServiceImpl();
+        TrackingDetail thisTracker = packageService.getCurrentTracker(this.id);
+        TrackingDetail packTracker = packageService.getCurrentTracker(pack.id);
+        return this.id.equals(pack.id) &&
+                this.trackingCode.equals(pack.trackingCode) &&
+                this.weight == pack.weight &&
+                thisTracker.getStatus().equals(packTracker.getStatus()) &&
+                thisTracker.getSource().equals(packTracker.getSource()) &&
+                thisTracker.getCity().equals(packTracker.getCity()) &&
+                thisTracker.getState().equals(packTracker.getState()) &&
+                thisTracker.getCountry().equals(packTracker.getCountry()) &&
+                thisTracker.getZip().equals(packTracker.getZip());
+    }
+    
 }

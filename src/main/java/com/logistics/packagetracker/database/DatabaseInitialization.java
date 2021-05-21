@@ -2,10 +2,11 @@ package com.logistics.packagetracker.database;
 
 import com.github.javafaker.Faker;
 import com.logistics.packagetracker.entity.Package;
-import com.logistics.packagetracker.entity.TrackingDetails;
+import com.logistics.packagetracker.entity.TrackingDetail;
 import com.logistics.packagetracker.enumeration.PackageStatus;
 import com.logistics.packagetracker.service.PackageService;
 import com.logistics.packagetracker.util.DateConverter;
+import com.logistics.packagetracker.util.GenerateTrackingCode;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
@@ -13,9 +14,9 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.Collections;
 import java.util.Locale;
+import java.util.UUID;
 
 @Slf4j
 @Configuration
@@ -25,33 +26,33 @@ public class DatabaseInitialization
     
     
     @Autowired
-    PackageService packageService;
+    private PackageService packageService;
     
     private Package pack;
-    private TrackingDetails trackingDetails;
+    private TrackingDetail trackingDetail;
     
     @Bean
     CommandLineRunner initDatabase()
     {
         return args ->
         {
-            log.info("Initializing database");
-            trackingDetails = initTrackerDetails();
+            /*log.info("Initializing database");
+            trackingDetail = initTrackerDetails();
             pack = initPackage();
-            
-            log.info("Initialization completed");
+            log.info("Initialization completed");*/
         };
     }
     
-    private TrackingDetails initTrackerDetails()
+    public TrackingDetail initTrackerDetails()
     {
-        return new TrackingDetails(PackageStatus.PICKED_UP, pickupDate(), faker.company().name(), faker.address().city(), faker.address().state(), faker.address().country(), faker.address().zipCode());
+        return new TrackingDetail(PackageStatus.PICKED_UP, System.currentTimeMillis(), faker.company().name(), faker.address().city(), faker.address().state(), faker.address().country(), faker.address().zipCode());
     }
     
-    private Package initPackage()
+    public Package initPackage()
     {
         
-        return new Package(null, Package.generateTrackingCode(), pickupDate(), 16.7, deliveryDate(), trackingDetails, Collections.singletonList(trackingDetails));
+        Package pack = new Package( GenerateTrackingCode.generateTrackingCode(), PackageStatus.PICKED_UP, pickupDate(), 16.7, deliveryDate(), Collections.singletonList(trackingDetail));
+        return packageService.createPackage(pack);
     }
     
     public String pickupDate()
@@ -63,4 +64,5 @@ public class DatabaseInitialization
     {
         return ZonedDateTime.now().plusDays(5).format(DateConverter.formatter);
     }
+    
 }
