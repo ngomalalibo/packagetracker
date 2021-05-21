@@ -15,7 +15,6 @@ import javax.annotation.PostConstruct;
 public class TrackingDetail
 {
     private PackageStatus status;
-    
     private Long dateTime;
     private String source;
     private String city;

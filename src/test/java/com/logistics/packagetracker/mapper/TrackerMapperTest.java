@@ -1,7 +1,7 @@
 package com.logistics.packagetracker.mapper;
 
 import com.logistics.packagetracker.entity.Package;
-import com.logistics.packagetracker.entity.TrackingDetailsDTO;
+import com.logistics.packagetracker.entity.TrackingDetailDTO;
 import com.logistics.packagetracker.entity.TrackingDetail;
 import com.logistics.packagetracker.enumeration.PackageStatus;
 import com.logistics.packagetracker.service.PackageService;
@@ -12,7 +12,9 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
+import java.sql.Timestamp;
 import java.time.ZonedDateTime;
+import java.util.Calendar;
 import java.util.Collections;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -35,15 +37,11 @@ class TrackerMapperTest
     @Test
     void convertToDto()
     {
-        TrackingDetail trackingDetail = new TrackingDetail(PackageStatus.PICKED_UP, System.currentTimeMillis(), "Fedex",
-                                                           "Ikeja", "Lagos", "Nigeria", "100001");
-        Package pack = new Package("ABC45", PackageStatus.PICKED_UP, ZonedDateTime.now().format(DateConverter.formatter), 16.7, ZonedDateTime.now().format(DateConverter.formatter), Collections.singletonList(trackingDetail));
-        pack.setId(new ObjectId().toHexString());
-        pack = packageService.createPackage(pack);
+        Package pack = packageService.getPackageById("60a7e70e13cd056c5c844ba8");
         TrackingDetail packTracker = packageService.getCurrentTracker(pack.getId());
-        TrackingDetailsDTO dto = trackerMapper.convertToDto(pack);
+        TrackingDetailDTO dto = trackerMapper.convertToDto(packTracker, pack.getId() );
         assertEquals(pack.getId(), dto.getId());
-        assertEquals(pack.getStatus(), dto.getStatus());
+        assertEquals(packTracker.getStatus(), dto.getStatus());
         assertEquals(packTracker.getCity(), dto.getCurrentCity());
         assertEquals(packTracker.getState(), dto.getCurrentState());
         assertEquals(packTracker.getCountry(), dto.getCurrentCountry());
@@ -53,7 +51,8 @@ class TrackerMapperTest
     @Test
     void convertToEntity()
     {
-        TrackingDetailsDTO dto = new TrackingDetailsDTO("60a6a40862b3066832617f50", PackageStatus.PICKED_UP, "UPS", "Ikeja", "Lagos", "Nigeria", "100001");
+        Timestamp dateTime = new Timestamp(System.currentTimeMillis());
+        TrackingDetailDTO dto = new TrackingDetailDTO("60a6a40862b3066832617f50", PackageStatus.PICKED_UP, dateTime, "UPS", "Ikeja", "Lagos", "Nigeria", "100001");
         TrackingDetail thisTracker = trackerMapper.convertToEntity(dto);
         
         assertEquals(dto.getStatus(), thisTracker.getStatus());

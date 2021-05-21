@@ -22,7 +22,6 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
 import java.time.ZonedDateTime;
 import java.util.Collections;
-import java.util.LinkedHashMap;
 
 @Slf4j
 @AutoConfigureMockMvc
@@ -46,7 +45,7 @@ class PackageControllerTest
     @Test
     void getAllPackages() throws Exception
     {
-        String path = "/api/package/getAllPackages";
+        String path = "/api/package/getAll";
         
         mockMvc.perform(MockMvcRequestBuilders.get(path)
                                               .contentType(MediaType.APPLICATION_JSON_VALUE)
@@ -59,8 +58,8 @@ class PackageControllerTest
     void getPackage() throws Exception
     {
         String path = "/api/package/tracker/{id}";
-        String exists = "60a6a40862b3066832617f50";
-        String doesNot = "60b6a40862b3066832617f50";
+        String exists = "60a7e70e13cd056c5c844ba8";
+        String doesNot = "60a7e70e13cd056c5c843ba8";
         
         
         // pass
@@ -73,7 +72,7 @@ class PackageControllerTest
         mockMvc.perform(MockMvcRequestBuilders.get(path, doesNot)
                                               .contentType("application/json")
                                               .param("key", PackageController.API_KEY))
-               .andExpect(MockMvcResultMatchers.status().isNotFound());
+               .andExpect(MockMvcResultMatchers.status().is5xxServerError());
     }
     
     @Disabled
@@ -115,16 +114,29 @@ class PackageControllerTest
         Package pack = new Package(GenerateTrackingCode.generateTrackingCode(), PackageStatus.PICKED_UP, ZonedDateTime.now().format(DateConverter.formatter), 20.4,
                                    ZonedDateTime.now().plusDays(3).format(DateConverter.formatter), Collections.singletonList(td));
         
-        String path = "/api/package/createPackage";
+        String path = "/api/package/create";
         mockMvc.perform(MockMvcRequestBuilders.post(path)
                                               .contentType(MediaType.APPLICATION_JSON_VALUE)
                                               .param("key", PackageController.API_KEY)
                                               .content(objectMapper.writeValueAsString(pack)))
                .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
                .andExpect(MockMvcResultMatchers.status().isOk())
-               .andExpect(MockMvcResultMatchers.jsonPath("$", Matchers.isA(LinkedHashMap.class)))
-               .andExpect(MockMvcResultMatchers.jsonPath("$.currentSource", Matchers.is("Raven")))
-               .andExpect(MockMvcResultMatchers.jsonPath("$['currentCity']", Matchers.is("Westeros")));
+               .andExpect(MockMvcResultMatchers.jsonPath("$", Matchers.isA(Package.class)))
+               .andExpect(MockMvcResultMatchers.jsonPath("$", Matchers.hasProperty("id")))
+               .andExpect(MockMvcResultMatchers.jsonPath("$['status']", Matchers.is(PackageStatus.PICKED_UP)));
         
     }
+    
+    @Test
+    void getPackageTrackingHistory() throws Exception
+    {
+        String id = "60a7d2293c55cd377f8f0254";
+        String path = "/api/package/history/{id}";
+        mockMvc.perform(MockMvcRequestBuilders.get(path, id)
+                                              .contentType(MediaType.APPLICATION_JSON_VALUE)
+                                              .param("key", PackageController.API_KEY))
+               .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
+               .andExpect(MockMvcResultMatchers.status().isOk());
+    }
+    
 }

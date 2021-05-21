@@ -1,6 +1,6 @@
 package com.logistics.packagetracker.util;
 
-import java.text.SimpleDateFormat;
+import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
@@ -9,7 +9,9 @@ import java.time.format.DateTimeFormatter;
 import java.util.TimeZone;
 
 
-/** Converts between dates and strings conveniently.*/
+/**
+ * Converts between dates and strings conveniently.
+ */
 public class DateConverter
 {
     public static DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MMM-dd-yyyy HH:mm:ss a Z");
@@ -25,5 +27,10 @@ public class DateConverter
         localDateTime.atZone(TimeZone.getDefault().toZoneId());
         OffsetDateTime offsetDateTime = localDateTime.atOffset(ZoneOffset.UTC);
         return offsetDateTime.toZonedDateTime();
+    }
+    
+    public static Timestamp millisecToTimestampConv(long milli)
+    {
+        return new Timestamp(milli);
     }
 }

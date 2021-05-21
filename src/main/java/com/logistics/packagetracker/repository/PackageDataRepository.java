@@ -52,7 +52,8 @@ public class PackageDataRepository
             if (!Objects.isNull(objectId))
             {
                 idQuery = Aggregates.match(Filters.eq("_id", new ObjectId(objectId)));
-                Optional.of(collection.aggregate(Collections.singletonList(idQuery))).ifPresent(a -> object.set(a.first()));
+                Bson limit = Aggregates.limit(1);
+                Optional.of(collection.aggregate(List.of(idQuery, limit))).ifPresent(a -> object.set(a.first()));
             }
         }
         catch (Exception e)

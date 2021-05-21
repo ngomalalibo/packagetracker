@@ -6,9 +6,11 @@ import com.logistics.packagetracker.dataProvider.SortProperties;
 import com.logistics.packagetracker.database.MongoConnection;
 import com.logistics.packagetracker.entity.Package;
 import com.logistics.packagetracker.entity.TrackingDetail;
+import com.logistics.packagetracker.entity.TrackingDetailDTO;
 import com.logistics.packagetracker.enumeration.PackageStatus;
 import com.logistics.packagetracker.exception.EntityNotFoundException;
 import com.logistics.packagetracker.exception.PackageStateException;
+import com.logistics.packagetracker.mapper.TrackerMapper;
 import com.logistics.packagetracker.repository.PackageDataRepository;
 import com.logistics.packagetracker.service.PackageService;
 import com.logistics.packagetracker.util.DateConverter;
@@ -27,8 +29,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.ZonedDateTime;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
 import static com.mongodb.client.model.Projections.*;
 
@@ -44,6 +45,9 @@ public class PackageServiceImpl implements PackageService
     
     @Autowired
     private MongoConnection mongoConnection;
+    
+    @Autowired
+    private TrackerMapper trackerMapper;
     
     public PackageDataRepository getPackageDataRepository()
     {
@@ -191,7 +195,6 @@ public class PackageServiceImpl implements PackageService
     @Override
     public TrackingDetail getCurrentTracker(String id)
     {
-        
         Bson match = Aggregates.match(Filters.eq("_id", new ObjectId(id)));
         Bson unwind = Aggregates.unwind("$trackingDetails");
         Bson projB = Aggregates.project(fields(include("trackingDetails"), excludeId()));
@@ -215,5 +218,33 @@ public class PackageServiceImpl implements PackageService
         }
         
         return td;
+    }
+    
+    @Override
+    public  List<TrackingDetailDTO> getPackageTrackingHistory(String id)
+    {
+        Bson match = Aggregates.match(Filters.eq("_id", new ObjectId(id)));
+        Bson unwind = Aggregates.unwind("$trackingDetails");
+        Bson projB = Aggregates.project(fields(include("trackingDetails"), excludeId()));
+        Bson sort = Aggregates.sort(Sorts.descending("trackingDetails.dateTime"));
+        
+        List<Bson> pipeline = List.of(match, unwind, projB, sort);
+        
+        AggregateIterable<Document> aggregate = mongoConnection.collection.aggregate(pipeline);
+        List<TrackingDetailDTO> tdList = new ArrayList<>();
+        MongoCursor<Document> iterator = aggregate.iterator();
+        if (aggregate.iterator().hasNext())
+        {
+            Document next = iterator.next();
+            Document s = (Document) next.get("trackingDetails");
+            TrackingDetail trackingDetail = new TrackingDetail(PackageStatus.valueOf(s.getString("status")),
+                                                               s.getLong("dateTime"),
+                                                               s.getString("source"),
+                                                               s.getString("city"),
+                                                               s.getString("state"), s.getString("country"), s.getString("zip"));
+            TrackingDetailDTO dto = trackerMapper.convertToDto(trackingDetail, id);
+            tdList.add(dto);
+        }
+        return  tdList;
     }
 }

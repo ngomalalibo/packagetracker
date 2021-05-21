@@ -2,8 +2,8 @@ package com.logistics.packagetracker.controller;
 
 import com.google.common.base.Strings;
 import com.logistics.packagetracker.entity.Package;
-import com.logistics.packagetracker.entity.TrackingDetailsDTO;
 import com.logistics.packagetracker.entity.TrackingDetail;
+import com.logistics.packagetracker.entity.TrackingDetailDTO;
 import com.logistics.packagetracker.exception.EntityNotFoundException;
 import com.logistics.packagetracker.mapper.TrackerMapper;
 import com.logistics.packagetracker.response.ApiResponse;
@@ -20,7 +20,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.nio.file.AccessDeniedException;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/package")
@@ -44,11 +43,11 @@ public class PackageController
     @ApiResponses(value = {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Found all packages",
                     content = {@Content(mediaType = "application/json",
-                            schema = @Schema(implementation = TrackingDetailsDTO.class))}),
+                            schema = @Schema(implementation = TrackingDetailDTO.class))}),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "Packages not found",
                     content = @Content)})
-    @GetMapping("/getAllPackages")
-    public ResponseEntity<List<Package>> getAllPackages(@RequestParam("key") String key) throws AccessDeniedException
+    @GetMapping("/getAll")
+    public ResponseEntity<Object> getAllPackages(@RequestParam("key") String key) throws AccessDeniedException
     {
         // validates the temporary security setup to secure endpoints.
         if (!key.equals(API_KEY))
@@ -56,7 +55,8 @@ public class PackageController
             throw new AccessDeniedException("Access denied. Provide a valid Key.");
         }
         List<Package> result = packageService.findAllPackages();
-        return ResponseEntity.ok(result);
+        ApiResponse apiResponse = new ApiResponse(HttpStatus.OK, "Packages retrieved.", result);
+        return buildResponseEntity(apiResponse, HttpStatus.OK);
     }
     
     @GetMapping("/tracker/{id}")
@@ -66,10 +66,10 @@ public class PackageController
         {
             throw new AccessDeniedException("Access denied. Provide a valid Key.");
         }
-        TrackingDetailsDTO trackingDetailsDTO = trackerMapper.convertToDto(packageService.getPackageById(id));
-        if (trackingDetailsDTO != null)
+        Package pack = packageService.getPackageById(id);
+        if (pack != null)
         {
-            ApiResponse apiResponse = new ApiResponse(HttpStatus.OK, "Package found.", trackingDetailsDTO);
+            ApiResponse apiResponse = new ApiResponse(HttpStatus.OK, "Package retrieved.", pack);
             return buildResponseEntity(apiResponse, HttpStatus.OK);
         }
         throw new EntityNotFoundException("Package not found");
@@ -85,34 +85,51 @@ public class PackageController
         String updId = packageService.trackPackage(tracker, id);
         if (!Strings.isNullOrEmpty(updId))
         {
-            ApiResponse apiResponse = new ApiResponse(HttpStatus.OK, "Tracker updated successfully", updId);
-            return new ResponseEntity<>(apiResponse, apiResponse.getStatus());
+            ApiResponse apiResponse = new ApiResponse(HttpStatus.OK, "Tracker updated.", updId);
+            return buildResponseEntity(apiResponse, apiResponse.getStatus());
         }
         throw new EntityNotFoundException("Tracker not updated");
     }
     
     @GetMapping("/status/{status}")
-    public ResponseEntity<List<TrackingDetailsDTO>> getPackageByStatus(@PathVariable String status, @RequestParam("key") String key) throws AccessDeniedException
+    public ResponseEntity<Object> getPackageByStatus(@PathVariable String status, @RequestParam("key") String key) throws AccessDeniedException
     {
         if (!key.equals(API_KEY))
         {
             throw new AccessDeniedException("Access denied. Provide a valid Key.");
         }
-        
-        return ResponseEntity.ok(packageService.findByStatus(status).stream().map(d -> trackerMapper.convertToDto(d)).collect(Collectors.toList()));
+        List<Package> pack = packageService.findByStatus(status);
+        ApiResponse apiResponse = new ApiResponse(HttpStatus.OK, "Tracker updated.", pack);
+        return buildResponseEntity(apiResponse, HttpStatus.OK);
     }
     
-    @PostMapping(value = "/createPackage")
-    public ResponseEntity<TrackingDetailsDTO> createPackage(@RequestBody Package pack, @RequestParam("key") String key) throws AccessDeniedException
+    @PostMapping(value = "/create")
+    public ResponseEntity<Package> createPackage(@RequestBody Package pack, @RequestParam("key") String key) throws AccessDeniedException
     {
         if (!key.equals(API_KEY))
         {
             throw new AccessDeniedException("Access denied. Provide a valid Key.");
         }
         Package created = packageService.createPackage(pack);
-        TrackingDetailsDTO dto = trackerMapper.convertToDto(created);
-        return ResponseEntity.ok(dto);
+        return ResponseEntity.ok(created);
     }
+    
+    @GetMapping("/history/{id}")
+    public ResponseEntity<Object> getPackageTrackingHistory(@PathVariable String id, @RequestParam("key") String key) throws AccessDeniedException
+    {
+        if (!key.equals(API_KEY))
+        {
+            throw new AccessDeniedException("Access denied. Provide a valid Key.");
+        }
+        List<TrackingDetailDTO> pth = packageService.getPackageTrackingHistory(id);
+        if (pth != null)
+        {
+            ApiResponse apiResponse = new ApiResponse(HttpStatus.OK, "Package tracking history retrieved.", pth);
+            return buildResponseEntity(apiResponse, HttpStatus.OK);
+        }
+        throw new EntityNotFoundException("Package not found");
+    }
+    
     
     private ResponseEntity<Object> buildResponseEntity(ApiResponse apiResponse, HttpStatus status)
     {
