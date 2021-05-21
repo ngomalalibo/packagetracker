@@ -25,7 +25,5 @@ public class DateConverter
         localDateTime.atZone(TimeZone.getDefault().toZoneId());
         OffsetDateTime offsetDateTime = localDateTime.atOffset(ZoneOffset.UTC);
         return offsetDateTime.toZonedDateTime();
-        // return offsetDateTime.atZoneSimilarLocal(TimeZone.getDefault().toZoneId());
-        // return offsetDateTime.atZoneSameInstant(ZoneId.systemDefault());
     }
 }
