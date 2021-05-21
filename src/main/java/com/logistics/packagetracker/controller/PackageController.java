@@ -92,12 +92,13 @@ public class PackageController
     }
     
     @GetMapping("/status/{status}")
-    public ResponseEntity<List<PackageDTO>> getPackageByStatus(@PathVariable PackageStatus status, @RequestParam("key") String key) throws AccessDeniedException
+    public ResponseEntity<List<PackageDTO>> getPackageByStatus(@PathVariable String status, @RequestParam("key") String key) throws AccessDeniedException
     {
         if (!key.equals(API_KEY))
         {
             throw new AccessDeniedException("Access denied. Provide a valid Key.");
         }
+        
         return ResponseEntity.ok(packageService.findByStatus(status).stream().map(d -> trackerMapper.convertToDto(d)).collect(Collectors.toList()));
     }
     

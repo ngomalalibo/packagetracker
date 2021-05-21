@@ -128,8 +128,8 @@ class PackageServiceTest
                                        30.9, ZonedDateTime.now().plusDays(6).format(DateConverter.formatter), List.of(new TrackingDetail()));
         
         
-        Mockito.when(packageService.findByStatus(ps)).thenReturn(List.of(expected));
-        List<Package> actual = packageService.findByStatus(ps);
+        Mockito.when(packageService.findByStatus(ps.toString())).thenReturn(List.of(expected));
+        List<Package> actual = packageService.findByStatus(ps.toString());
         assertEquals(expected.getTrackingCode(), actual.get(0).getTrackingCode());
     }
     

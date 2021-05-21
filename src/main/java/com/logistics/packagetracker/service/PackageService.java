@@ -27,7 +27,7 @@ public interface PackageService
     
     boolean isDelivered(String id);
     
-    List<Package> findByStatus(PackageStatus status);
+    List<Package> findByStatus(String status);
     
     TrackingDetail getCurrentTracker(String id);
     

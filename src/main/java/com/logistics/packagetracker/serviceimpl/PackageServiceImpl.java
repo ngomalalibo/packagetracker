@@ -25,6 +25,7 @@ import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Arrays;
 import java.util.List;
 
 import static com.mongodb.client.model.Projections.*;
@@ -160,9 +161,15 @@ public class PackageServiceImpl implements PackageService
     }
     
     @Override
-    public List<Package> findByStatus(PackageStatus status)
+    public List<Package> findByStatus(String status)
     {
-        return packageDataRepository.getPackageByAnyProperty("status", status.toString(), List.of(new SortProperties("createdDate", false)));
+        // check if string passed is in the PackageStatus enumeration
+        boolean isValid = Arrays.stream(PackageStatus.values()).anyMatch(e -> e.toString().equals(status));
+        if (isValid)
+        {
+            return packageDataRepository.getPackageByAnyProperty("status", status.toString(), List.of(new SortProperties("createdDate", false)));
+        }
+        throw new PackageStateException("Provide valid package status. Package status should be either PICKED_UP, IN_TRANSIT, WAREHOUSE or DELIVERED");
     }
     
     @Override

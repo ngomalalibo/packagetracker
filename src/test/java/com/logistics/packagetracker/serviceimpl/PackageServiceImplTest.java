@@ -101,13 +101,13 @@ class PackageServiceImplTest
         PackageStatus ps = PackageStatus.PICKED_UP;
         long expected = packageService.count();
         
-        long actual = packageService.findByStatus(ps).size()+1;
+        long actual = packageService.findByStatus(ps.toString()).size()+1;
         assertEquals(expected, actual);
         
         ps = PackageStatus.DELIVERED;
         expected = 1;
         
-        actual = packageService.findByStatus(ps).size();
+        actual = packageService.findByStatus(ps.toString()).size();
         assertEquals(expected, actual);
         
         

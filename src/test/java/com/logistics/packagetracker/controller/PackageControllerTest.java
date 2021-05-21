@@ -100,7 +100,7 @@ class PackageControllerTest
     void testGetPackage() throws Exception
     {
         String path = "/api/package/status/{status}";
-        mockMvc.perform(MockMvcRequestBuilders.get(path, PackageStatus.PICKED_UP)
+        mockMvc.perform(MockMvcRequestBuilders.get(path, "PICKED_UP")
                                               .contentType(MediaType.APPLICATION_JSON_VALUE)
                                               .param("key", PackageController.API_KEY))
                .andExpect(MockMvcResultMatchers.status().isOk());

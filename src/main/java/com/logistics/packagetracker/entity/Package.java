@@ -2,7 +2,10 @@ package com.logistics.packagetracker.entity;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.logistics.packagetracker.enumeration.PackageStatus;
-import lombok.*;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 import org.bson.codecs.pojo.annotations.BsonProperty;
 
 import java.util.ArrayList;
@@ -12,7 +15,6 @@ import java.util.List;
 @Setter
 @NoArgsConstructor
 @ToString
-
 public class Package
 {
     /**
