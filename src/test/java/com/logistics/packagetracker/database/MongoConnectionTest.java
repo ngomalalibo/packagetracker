@@ -49,6 +49,6 @@ class MongoConnectionTest
     {
         Document rDoc = database.getDBStats();
         assertEquals(rDoc.getString("db"), "packagetracker");
-        assertEquals(Integer.parseInt(rDoc.getInteger("collections").toString()), 1);
+        assertEquals(Integer.parseInt(rDoc.getInteger("collections").toString()), 2);
     }
 }

@@ -99,27 +99,6 @@ public class PackageDataRepository
         
     }
     
-    public int getPackageByKeyCount(String key, String value)
-    {
-        if (!isCollectionNullorEmpty())
-        {
-            if (!Objects.isNull(key) && !Objects.isNull(value))
-            {
-                List<SortProperties> sortOrder = new ArrayList<>();
-                return getPackageByAnyProperty(key, value, sortOrder).size();
-            }
-            else
-            {
-                throw new CustomNullPointerException("attempting to get Entity By key count on non-existent key/value");
-            }
-        }
-        else
-        {
-            throw new CustomNullPointerException("Collection is null or empty");
-        }
-        
-    }
-    
     public List<Package> getAllOfEntity()
     {
         if (!isCollectionNullorEmpty())
