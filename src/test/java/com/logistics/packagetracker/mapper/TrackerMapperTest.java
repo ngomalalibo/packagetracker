@@ -1,4 +1,4 @@
-package com.logistics.packagetracker.dto;
+package com.logistics.packagetracker.mapper;
 
 import com.logistics.packagetracker.entity.Package;
 import com.logistics.packagetracker.entity.PackageDTO;

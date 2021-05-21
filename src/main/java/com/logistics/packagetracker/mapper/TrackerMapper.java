@@ -1,4 +1,4 @@
-package com.logistics.packagetracker.dto;
+package com.logistics.packagetracker.mapper;
 
 import com.logistics.packagetracker.entity.Package;
 import com.logistics.packagetracker.entity.PackageDTO;
@@ -16,7 +16,7 @@ import org.springframework.stereotype.Component;
 public class TrackerMapper
 {
     @Autowired
-    PackageService packageService;
+    private PackageService packageService;
     
     public PackageDTO convertToDto(Package pack)
     {

@@ -71,7 +71,6 @@ public class MongoConnection
     // Connect to database
     public MongoDatabase connectToDB()
     {
-        System.out.println("DBURL ->" + DBSTR);
         ConnectionString connectionString = new ConnectionString(DBSTR);
         
         MongoClientSettings settings = MongoClientSettings.builder()

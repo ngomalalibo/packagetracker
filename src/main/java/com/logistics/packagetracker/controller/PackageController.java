@@ -1,7 +1,7 @@
 package com.logistics.packagetracker.controller;
 
 import com.google.common.base.Strings;
-import com.logistics.packagetracker.dto.TrackerMapper;
+import com.logistics.packagetracker.mapper.TrackerMapper;
 import com.logistics.packagetracker.entity.Package;
 import com.logistics.packagetracker.entity.PackageDTO;
 import com.logistics.packagetracker.entity.TrackingDetail;

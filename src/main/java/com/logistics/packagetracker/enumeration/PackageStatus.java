@@ -1,5 +1,8 @@
 package com.logistics.packagetracker.enumeration;
 
+import lombok.Getter;
+
+@Getter
 public enum PackageStatus
 {
     /** Package Tracking statuses are captured using this enumeration */
@@ -24,24 +27,9 @@ public enum PackageStatus
     
     private String value;
     
-    public String getValue()
-    {
-        return this.value;
-    }
-    
-    public void setValue(String value)
-    {
-        this.value = value;
-    }
-    
     PackageStatus(String value)
     {
         this.value = value;
-    }
-    
-    public String displayText()
-    {
-        return getDisplayText(this);
     }
     
     public static PackageStatus fromValue(String v)

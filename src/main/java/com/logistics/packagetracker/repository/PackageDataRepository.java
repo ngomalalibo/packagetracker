@@ -124,7 +124,6 @@ public class PackageDataRepository
     {
         if (!isCollectionNullorEmpty())
         {
-            //collection is already set by constructor
             List<Package> allRecords = new ArrayList<>();
             Optional.of(mongoConnection.packages.find()).ifPresent(s ->
                                                                    {

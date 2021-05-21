@@ -17,9 +17,4 @@ public class SortProperties
         this.ascending = ascending;
     }
     
-    public SortProperties()
-    {
-        super();
-    }
-    
 }
