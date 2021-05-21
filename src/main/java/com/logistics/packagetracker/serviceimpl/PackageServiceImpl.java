@@ -88,14 +88,15 @@ public class PackageServiceImpl implements PackageService
         {
             if (isPickedUp(id) && track.getStatus() == PackageStatus.PICKED_UP)
             {
-                throw new PackageStateException("Package has been picked up.");
+                throw new PackageStateException("Package has already been picked up.");
             }
             else if (isDelivered(id) && track.getStatus() == PackageStatus.DELIVERED)
             {
-                throw new PackageStateException("Package has been delivered.");
+                throw new PackageStateException("Package has already been delivered.");
             }
             
             Bson match = Filters.eq("_id", new ObjectId(id));
+            track.setDateTime(System.currentTimeMillis());
             Bson updArray = Updates.combine(Updates.push("trackingDetails", track), Updates.set("status", track.getStatus()));
             UpdateResult updateResult = mongoConnection.packages.updateOne(match, updArray);
             if (updateResult.getModifiedCount() >= 1)

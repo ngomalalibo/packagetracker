@@ -1,12 +1,11 @@
 package com.logistics.packagetracker.controller;
 
 import com.google.common.base.Strings;
-import com.logistics.packagetracker.mapper.TrackerMapper;
 import com.logistics.packagetracker.entity.Package;
 import com.logistics.packagetracker.entity.PackageDTO;
 import com.logistics.packagetracker.entity.TrackingDetail;
-import com.logistics.packagetracker.enumeration.PackageStatus;
 import com.logistics.packagetracker.exception.EntityNotFoundException;
+import com.logistics.packagetracker.mapper.TrackerMapper;
 import com.logistics.packagetracker.response.ApiResponse;
 import com.logistics.packagetracker.service.PackageService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -39,6 +38,7 @@ public class PackageController
     {
         this.packageService = packageService;
     }
+    
     // Spring Open API Documenation for endpoint
     @Operation(summary = "Get all packages", description = "List of packages")
     @ApiResponses(value = {
@@ -69,7 +69,7 @@ public class PackageController
         PackageDTO packageDTO = trackerMapper.convertToDto(packageService.getPackageById(id));
         if (packageDTO != null)
         {
-            ApiResponse apiResponse = new ApiResponse(HttpStatus.OK, "Package tracking complete.", packageDTO);
+            ApiResponse apiResponse = new ApiResponse(HttpStatus.OK, "Package found.", packageDTO);
             return buildResponseEntity(apiResponse, HttpStatus.OK);
         }
         throw new EntityNotFoundException("Package not found");
