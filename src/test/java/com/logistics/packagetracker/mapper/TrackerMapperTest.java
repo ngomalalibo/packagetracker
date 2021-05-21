@@ -1,7 +1,7 @@
 package com.logistics.packagetracker.mapper;
 
 import com.logistics.packagetracker.entity.Package;
-import com.logistics.packagetracker.entity.PackageDTO;
+import com.logistics.packagetracker.entity.TrackingDetailsDTO;
 import com.logistics.packagetracker.entity.TrackingDetail;
 import com.logistics.packagetracker.enumeration.PackageStatus;
 import com.logistics.packagetracker.service.PackageService;
@@ -41,7 +41,7 @@ class TrackerMapperTest
         pack.setId(new ObjectId().toHexString());
         pack = packageService.createPackage(pack);
         TrackingDetail packTracker = packageService.getCurrentTracker(pack.getId());
-        PackageDTO dto = trackerMapper.convertToDto(pack);
+        TrackingDetailsDTO dto = trackerMapper.convertToDto(pack);
         assertEquals(pack.getId(), dto.getId());
         assertEquals(pack.getStatus(), dto.getStatus());
         assertEquals(packTracker.getCity(), dto.getCurrentCity());
@@ -53,7 +53,7 @@ class TrackerMapperTest
     @Test
     void convertToEntity()
     {
-        PackageDTO dto = new PackageDTO("60a6a40862b3066832617f50", PackageStatus.PICKED_UP, "UPS", "Ikeja", "Lagos", "Nigeria", "100001");
+        TrackingDetailsDTO dto = new TrackingDetailsDTO("60a6a40862b3066832617f50", PackageStatus.PICKED_UP, "UPS", "Ikeja", "Lagos", "Nigeria", "100001");
         TrackingDetail thisTracker = trackerMapper.convertToEntity(dto);
         
         assertEquals(dto.getStatus(), thisTracker.getStatus());

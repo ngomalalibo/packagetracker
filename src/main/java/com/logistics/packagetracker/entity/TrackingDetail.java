@@ -6,6 +6,8 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.PostConstruct;
+
 @Getter
 @Setter
 @NoArgsConstructor
@@ -13,12 +15,19 @@ import org.springframework.stereotype.Component;
 public class TrackingDetail
 {
     private PackageStatus status;
+    
     private Long dateTime;
     private String source;
     private String city;
     private String state;
     private String country;
     private String zip;
+    
+    @PostConstruct
+    private void audit()
+    {
+        this.dateTime = System.currentTimeMillis();
+    }
     
     public TrackingDetail(PackageStatus status, Long dateTime, String source, String city, String state, String country, String zip)
     {

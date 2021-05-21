@@ -1,7 +1,7 @@
 package com.logistics.packagetracker.mapper;
 
 import com.logistics.packagetracker.entity.Package;
-import com.logistics.packagetracker.entity.PackageDTO;
+import com.logistics.packagetracker.entity.TrackingDetailsDTO;
 import com.logistics.packagetracker.entity.TrackingDetail;
 import com.logistics.packagetracker.service.PackageService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,15 +18,15 @@ public class TrackerMapper
     @Autowired
     private PackageService packageService;
     
-    public PackageDTO convertToDto(Package pack)
+    public TrackingDetailsDTO convertToDto(Package pack)
     {
         TrackingDetail currentTracker = packageService.getCurrentTracker(pack.getId());
-        return new PackageDTO(pack.getId(), currentTracker.getStatus(), currentTracker.getSource(), currentTracker.getCity(),
-                              currentTracker.getState(), currentTracker.getCountry(), currentTracker.getZip());
+        return new TrackingDetailsDTO(pack.getId(), currentTracker.getStatus(), currentTracker.getSource(), currentTracker.getCity(),
+                                      currentTracker.getState(), currentTracker.getCountry(), currentTracker.getZip());
     }
     
     
-    public TrackingDetail convertToEntity(PackageDTO dto)
+    public TrackingDetail convertToEntity(TrackingDetailsDTO dto)
     {
         return new TrackingDetail(dto.getStatus(), System.currentTimeMillis(), dto.getCurrentSource(),
                               dto.getCurrentCity(), dto.getCurrentState(),

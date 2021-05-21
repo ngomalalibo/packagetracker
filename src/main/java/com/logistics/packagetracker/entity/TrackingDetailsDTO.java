@@ -10,7 +10,7 @@ import org.springframework.stereotype.Component;
 @Setter
 @NoArgsConstructor
 @Component
-public class PackageDTO
+public class TrackingDetailsDTO
 {
     private String id;
     private PackageStatus status;
@@ -20,7 +20,7 @@ public class PackageDTO
     private String currentCountry;
     private String currentZipcode;
     
-    public PackageDTO(String id, PackageStatus status, String currentSource, String currentCity, String currentState, String currentCountry, String currentZipcode)
+    public TrackingDetailsDTO(String id, PackageStatus status, String currentSource, String currentCity, String currentState, String currentCountry, String currentZipcode)
     {
         this.id = id;
         this.status = status;
