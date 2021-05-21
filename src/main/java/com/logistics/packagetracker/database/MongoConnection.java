@@ -30,6 +30,10 @@ import java.util.HashSet;
 @Component
 public class MongoConnection
 {
+    /**
+     * Connect to mongo database using database url stored in system variables. Spring Data Mongo has some bugs and query limitations so I by-passes using Spring data mongo
+     * to enjoy the full power of aggregations.
+     */
     private final String DBNAME = "packagetracker";
     private final String DB_ORGANIZATION = "Package Tracker.";
     private final String DB_PACKAGES = "packages";
@@ -46,6 +50,9 @@ public class MongoConnection
         connectToDB();
     }
     
+    /**
+     * Codecs are use to tell mongo how to handle conversion to and from java objects
+     */
     public static CodecRegistry getCodecRegistry()
     {
         ClassModelBuilder<Package> classModelBuilder = ClassModel.builder(Package.class);
@@ -61,6 +68,7 @@ public class MongoConnection
         return CodecRegistries.fromRegistries(defaultCodecRegistry, customEnumCodecs, cvePojoCodecRegistry);
     }
     
+    // Connect to database
     public MongoDatabase connectToDB()
     {
         System.out.println("DBURL ->" + DBSTR);
@@ -85,6 +93,7 @@ public class MongoConnection
         return db;
     }
     
+    // disconnect from database at context shutdown
     public void disconnectFromDB()
     {
         if (mongo != null)
@@ -95,12 +104,6 @@ public class MongoConnection
         db = null;
     }
     
-    /*@Override
-    public void contextDestroyed(ServletContextEvent s)
-    {
-        log.info(" -> contextDestroyed");
-        stopDB();
-    }*/
     public MongoDatabase getDBConnection()
     {
         if (db == null || mongo == null)
@@ -119,7 +122,6 @@ public class MongoConnection
         
         return stats;
     }
-    
     
     public void createCollection(HashSet<String> hash, String collection)
     {

@@ -16,7 +16,6 @@ import org.springframework.context.annotation.Configuration;
 import java.time.ZonedDateTime;
 import java.util.Collections;
 import java.util.Locale;
-import java.util.UUID;
 
 @Slf4j
 @Configuration
@@ -36,6 +35,7 @@ public class DatabaseInitialization
     {
         return args ->
         {
+            /** used to initialize database with data during development*/
             /*log.info("Initializing database");
             trackingDetail = initTrackerDetails();
             pack = initPackage();
@@ -51,16 +51,16 @@ public class DatabaseInitialization
     public Package initPackage()
     {
         
-        Package pack = new Package( GenerateTrackingCode.generateTrackingCode(), PackageStatus.PICKED_UP, pickupDate(), 16.7, deliveryDate(), Collections.singletonList(trackingDetail));
+        Package pack = new Package(GenerateTrackingCode.generateTrackingCode(), PackageStatus.PICKED_UP, pickupDate(), 16.7, deliveryDate(), Collections.singletonList(trackingDetail));
         return packageService.createPackage(pack);
     }
     
-    public String pickupDate()
+    public String pickupDate() // stamp package with pickup date
     {
         return ZonedDateTime.now().format(DateConverter.formatter);
     }
     
-    public String deliveryDate()
+    public String deliveryDate()// stamp package with pickup date
     {
         return ZonedDateTime.now().plusDays(5).format(DateConverter.formatter);
     }

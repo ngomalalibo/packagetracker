@@ -7,6 +7,10 @@ import com.logistics.packagetracker.service.PackageService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+/**
+ * Manually map our TrackingDetail object to and from the PackageDTO for user consumption. THis was used in place of a model mapper library due to the time constraints
+ * and also the requirement of package tracker API.
+ * */
 
 @Component
 public class TrackerMapper

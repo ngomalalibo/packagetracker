@@ -15,17 +15,23 @@ import lombok.extern.slf4j.Slf4j;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 import org.bson.types.ObjectId;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.regex.Pattern;
 
+
+/**
+ * This repository was built manually to perform most of the mongo database query operations. It uses aggregations and regular mongo commands.
+ * As an alternative to Spring data mongo this repository provides all the regular operations required for data persistence and manipulation.
+ */
 @Slf4j
 @Getter
 @Repository
 public class PackageDataRepository
 {
+    @Autowired
     private MongoConnection mongoConnection;
     
     public boolean isCollectionNullorEmpty()
@@ -35,11 +41,6 @@ public class PackageDataRepository
             return true;
         }
         return mongoConnection.packages.countDocuments() <= 0;
-    }
-    
-    public PackageDataRepository()
-    {
-        mongoConnection = new MongoConnection();
     }
     
     public Package getObjectById(String objectId, MongoCollection<Package> collection)
@@ -136,40 +137,6 @@ public class PackageDataRepository
             throw new CustomNullPointerException("Collection is null or empty");
         }
         
-    }
-    
-    public List<Package> getPackageByTwoFilterSearch(List<SortProperties> sort, String filterOne, String filterTwo, String name)
-    {
-        /*System.out.println("filterOne = " + filterOne);
-        System.out.println("filterTwo = " + filterTwo);
-        System.out.println("name = " + name);*/
-        if (!isCollectionNullorEmpty())
-        {
-            List<Package> searchResult = new ArrayList<>();
-            Bson match;
-            if (Objects.isNull(name.trim()))
-            {
-                //fetch all documents. Empty filter
-                match = Aggregates.match(new Document());
-            }
-            else
-            {
-                Pattern ptrn = Pattern.compile(name, Pattern.CASE_INSENSITIVE);
-                match = Aggregates.match(Filters.or(Filters.regex(filterOne, ptrn), Filters.regex(filterTwo, ptrn)));
-            }
-            LinkedList<Bson> pipeline = new LinkedList<>();
-            pipeline.add(match);
-            sort.forEach(ps -> pipeline.add(Aggregates.sort(ps.isAscending() ? Sorts.ascending(ps.getPropertyName()) : Sorts.descending(ps.getPropertyName()))));
-            
-            Optional<AggregateIterable<Package>> aggregate = Optional.of(mongoConnection.packages.aggregate(pipeline));
-            aggregate.get().iterator().forEachRemaining(searchResult::add);
-            
-            return searchResult;
-        }
-        else
-        {
-            throw new CustomNullPointerException("Collection is null or empty");
-        }
     }
     
     public boolean existsByID(String id)

@@ -2,14 +2,13 @@ package com.logistics.packagetracker.response;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 
 import java.time.LocalDateTime;
-import java.util.Collections;
-import java.util.List;
 
+/**
+ * This ApiResponse class is used to provide a structured response to the  API client. It contains the responseBody along with the HttpStatus message.
+ */
 @Data
 public class ApiResponse
 {

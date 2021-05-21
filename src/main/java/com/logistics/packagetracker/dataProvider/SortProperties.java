@@ -7,6 +7,7 @@ import lombok.Setter;
 @Setter
 public class SortProperties
 {
+    /** Sort object used along with mongo document properties to sort database queries. */
     private String propertyName;
     private boolean ascending;
     

@@ -49,7 +49,8 @@ class PackageControllerTest
         String path = "/api/package/getAllPackages";
         
         mockMvc.perform(MockMvcRequestBuilders.get(path)
-                                              .contentType(MediaType.APPLICATION_JSON_VALUE))
+                                              .contentType(MediaType.APPLICATION_JSON_VALUE)
+                                              .param("key", PackageController.API_KEY))
                .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
                .andExpect(MockMvcResultMatchers.status().isOk());
     }
@@ -64,12 +65,14 @@ class PackageControllerTest
         
         // pass
         mockMvc.perform(MockMvcRequestBuilders.get(path, exists)
-                                              .contentType("application/json"))
+                                              .contentType("application/json")
+                                              .param("key", PackageController.API_KEY))
                .andExpect(MockMvcResultMatchers.status().isOk());
         
         // fail
         mockMvc.perform(MockMvcRequestBuilders.get(path, doesNot)
-                                              .contentType("application/json"))
+                                              .contentType("application/json")
+                                              .param("key", PackageController.API_KEY))
                .andExpect(MockMvcResultMatchers.status().isNotFound());
     }
     
@@ -87,6 +90,7 @@ class PackageControllerTest
         String path = "/api/package/tracker/{id}";
         mockMvc.perform(MockMvcRequestBuilders.put(path, id)
                                               .contentType(MediaType.APPLICATION_JSON_VALUE)
+                                              .param("key", PackageController.API_KEY)
                                               .content(objectMapper.writeValueAsString(expected)))
                .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
                .andExpect(MockMvcResultMatchers.status().is4xxClientError());
@@ -97,7 +101,8 @@ class PackageControllerTest
     {
         String path = "/api/package/status/{status}";
         mockMvc.perform(MockMvcRequestBuilders.get(path, PackageStatus.PICKED_UP)
-                                              .contentType(MediaType.APPLICATION_JSON_VALUE))
+                                              .contentType(MediaType.APPLICATION_JSON_VALUE)
+                                              .param("key", PackageController.API_KEY))
                .andExpect(MockMvcResultMatchers.status().isOk());
     }
     
@@ -113,6 +118,7 @@ class PackageControllerTest
         String path = "/api/package/createPackage";
         mockMvc.perform(MockMvcRequestBuilders.post(path)
                                               .contentType(MediaType.APPLICATION_JSON_VALUE)
+                                              .param("key", PackageController.API_KEY)
                                               .content(objectMapper.writeValueAsString(pack)))
                .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
                .andExpect(MockMvcResultMatchers.status().isOk())

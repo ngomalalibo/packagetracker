@@ -19,6 +19,9 @@ import java.util.List;
 @ToString
 public class Package
 {
+    /**
+     * Annotate primary key for mongo collection
+     */
     @BsonProperty("_id")
     @JsonProperty("_id")
     private String id;

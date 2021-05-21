@@ -14,6 +14,8 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class LoggingAspect
 {
+    /** This aspect can be used to implement cross cutting concerns like security, logging, caching, emailing etc. The advice is executed along with the Join Point. */
+    
     @AfterReturning(value = "@annotation(Loggable)", returning = "returnValue")
     public void logPackageMethodCall(JoinPoint joinPoint, Object returnValue)
     {

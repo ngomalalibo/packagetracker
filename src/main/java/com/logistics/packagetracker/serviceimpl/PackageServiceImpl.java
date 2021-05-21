@@ -29,6 +29,10 @@ import java.util.List;
 
 import static com.mongodb.client.model.Projections.*;
 
+/**
+ * This is the implementation of the Package tracking service specification. It corroborates the services offered in the package tracking API.
+ */
+
 @Service
 public class PackageServiceImpl implements PackageService
 {

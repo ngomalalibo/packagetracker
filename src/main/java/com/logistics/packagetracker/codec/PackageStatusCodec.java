@@ -7,6 +7,7 @@ import org.bson.codecs.Codec;
 import org.bson.codecs.DecoderContext;
 import org.bson.codecs.EncoderContext;
 
+/** Codecs are used to map properties in java objects to document fields in mongo documents */
 public class PackageStatusCodec implements Codec<PackageStatus>
 {
     @Override

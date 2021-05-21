@@ -2,6 +2,7 @@ package com.logistics.packagetracker.enumeration;
 
 public enum PackageStatus
 {
+    /** Package Tracking statuses are captured using this enumeration */
     PICKED_UP("PICKED_UP"), IN_TRANSIT("IN_TRANSIT"), WAREHOUSE("WAREHOUSE"), DELIVERED("DELIVERED");
     
     public static String getDisplayText(PackageStatus i)

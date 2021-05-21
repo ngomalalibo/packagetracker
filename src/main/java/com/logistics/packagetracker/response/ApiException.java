@@ -8,6 +8,7 @@ import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 
+/** This is used to send a structured response upon exceptions to the API client. */
 @Data
 public class ApiException
 {

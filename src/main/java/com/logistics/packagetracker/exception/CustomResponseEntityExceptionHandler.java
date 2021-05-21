@@ -27,7 +27,9 @@ import javax.validation.ConstraintViolation;
 import javax.validation.ConstraintViolationException;
 import java.util.ArrayList;
 import java.util.List;
-
+/**
+ * This controller advice is used to catch the exceptions defined here throughout the application.
+ * */
 @ControllerAdvice
 public class CustomResponseEntityExceptionHandler extends ResponseEntityExceptionHandler
 {
