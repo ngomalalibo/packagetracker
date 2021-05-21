@@ -48,14 +48,14 @@ public class PackageController
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "Packages not found",
                     content = @Content)})
     @GetMapping("/getAllPackages")
-    public ResponseEntity<List<PackageDTO>> getAllPackages(@RequestParam("key") String key) throws AccessDeniedException
+    public ResponseEntity<List<Package>> getAllPackages(@RequestParam("key") String key) throws AccessDeniedException
     {
         // validates the temporary security setup to secure endpoints.
         if (!key.equals(API_KEY))
         {
             throw new AccessDeniedException("Access denied. Provide a valid Key.");
         }
-        List<PackageDTO> result = packageService.findAllPackages().stream().map(s -> trackerMapper.convertToDto(s)).collect(Collectors.toList());
+        List<Package> result = packageService.findAllPackages();
         return ResponseEntity.ok(result);
     }
     
