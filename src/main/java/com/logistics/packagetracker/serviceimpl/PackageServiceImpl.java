@@ -11,6 +11,7 @@ import com.logistics.packagetracker.exception.EntityNotFoundException;
 import com.logistics.packagetracker.exception.PackageStateException;
 import com.logistics.packagetracker.repository.PackageDataRepository;
 import com.logistics.packagetracker.service.PackageService;
+import com.logistics.packagetracker.util.DateConverter;
 import com.mongodb.client.AggregateIterable;
 import com.mongodb.client.MongoCursor;
 import com.mongodb.client.model.Aggregates;
@@ -25,6 +26,7 @@ import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.ZonedDateTime;
 import java.util.Arrays;
 import java.util.List;
 
@@ -114,11 +116,24 @@ public class PackageServiceImpl implements PackageService
         }
     }
     
-    
     @Loggable
     @Override
     public Package createPackage(Package entity)
     {
+        // Manual auditing for now. Hibernate Envers or JPA auditing annotations should be used with Spring Data
+        if (entity == null)
+        {
+            throw new EntityNotFoundException("Package not created. Provide package information in request body.");
+        }
+        if (entity.getTrackingDetails() != null && entity.getTrackingDetails().size() != 0 && entity.getTrackingDetails().get(0) != null)
+        {
+            entity.getTrackingDetails().get(0).setDateTime(System.currentTimeMillis());
+        }
+        else
+        {
+            throw new EntityNotFoundException("Package not created. Provide tracker details along with package information in request body.");
+        }
+        entity.setCreatedDate(ZonedDateTime.now().format(DateConverter.formatter));
         InsertOneResult result = mongoConnection.packages.insertOne(entity);
         if (result.getInsertedId() != null)
         {
