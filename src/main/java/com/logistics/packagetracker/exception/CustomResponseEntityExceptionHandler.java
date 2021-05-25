@@ -155,7 +155,7 @@ public class CustomResponseEntityExceptionHandler extends ResponseEntityExceptio
     }
     
     @ExceptionHandler({AccessDeniedException.class})
-    public ResponseEntity<Object> handleAll(AccessDeniedException ex)
+    public ResponseEntity<Object> handleAccessDenied(AccessDeniedException ex)
     {
         ApiException apiResponse = new ApiException(
                 HttpStatus.FORBIDDEN, ex.getLocalizedMessage(), "Provide valid key");

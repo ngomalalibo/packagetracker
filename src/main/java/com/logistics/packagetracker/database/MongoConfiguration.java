@@ -31,8 +31,7 @@ import java.util.HashSet;
 public class MongoConfiguration extends AbstractMongoClientConfiguration
 {
     /**
-     * Connect to mongo database using database url stored in system variables. Spring Data Mongo has some bugs and query limitations so I by-passes using Spring data mongo
-     * to enjoy the full power of aggregations.
+     * Connect to mongo database using database url stored in system variables.
      */
     private final String DBNAME = "packagetracker";
     private final String DB_ORGANIZATION = "Package Tracker.";
