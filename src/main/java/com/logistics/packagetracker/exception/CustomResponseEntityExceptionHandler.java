@@ -1,9 +1,6 @@
 package com.logistics.packagetracker.exception;
 
 import com.logistics.packagetracker.response.ApiException;
-import com.logistics.packagetracker.response.ApiResponse;
-import org.springframework.core.Ordered;
-import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -15,8 +12,6 @@ import org.springframework.web.bind.MissingPathVariableException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
@@ -25,11 +20,13 @@ import javax.persistence.EntityNotFoundException;
 import javax.persistence.NonUniqueResultException;
 import javax.validation.ConstraintViolation;
 import javax.validation.ConstraintViolationException;
+import java.nio.file.AccessDeniedException;
 import java.util.ArrayList;
 import java.util.List;
+
 /**
  * This controller advice is used to catch the exceptions defined here throughout the application.
- * */
+ */
 @ControllerAdvice
 public class CustomResponseEntityExceptionHandler extends ResponseEntityExceptionHandler
 {
@@ -85,7 +82,7 @@ public class CustomResponseEntityExceptionHandler extends ResponseEntityExceptio
     {
         ApiException apiResponse =
                 new ApiException(HttpStatus.NOT_ACCEPTABLE, ex.getLocalizedMessage(), ex.getMessage());
-        return buildResponseEntity(apiResponse,HttpStatus.NOT_ACCEPTABLE);
+        return buildResponseEntity(apiResponse, HttpStatus.NOT_ACCEPTABLE);
     }
     
     @ExceptionHandler({ConstraintViolationException.class})
@@ -98,7 +95,7 @@ public class CustomResponseEntityExceptionHandler extends ResponseEntityExceptio
             errors.add(violation.getRootBeanClass().getName() + " " +
                                violation.getPropertyPath() + ": " + violation.getMessage());
         }
-    
+        
         ApiException apiResponse =
                 new ApiException(HttpStatus.BAD_REQUEST, ex.getLocalizedMessage(), errors);
         return buildResponseEntity(apiResponse, HttpStatus.BAD_REQUEST);
@@ -110,7 +107,7 @@ public class CustomResponseEntityExceptionHandler extends ResponseEntityExceptio
     {
         String error =
                 ex.getName() + " should be of type " + ex.getRequiredType().getName();
-    
+        
         ApiException apiResponse =
                 new ApiException(HttpStatus.BAD_REQUEST, ex.getLocalizedMessage(), error);
         return buildResponseEntity(apiResponse, HttpStatus.BAD_REQUEST);
@@ -128,9 +125,9 @@ public class CustomResponseEntityExceptionHandler extends ResponseEntityExceptio
         builder.append(
                 " method is not supported for this request. Supported methods are ");
         ex.getSupportedHttpMethods().forEach(t -> builder.append(t + " "));
-    
+        
         ApiException apiResponse = new ApiException(HttpStatus.METHOD_NOT_ALLOWED,
-                                                  ex.getLocalizedMessage(), builder.toString());
+                                                    ex.getLocalizedMessage(), builder.toString());
         return buildResponseEntity(apiResponse, HttpStatus.METHOD_NOT_ALLOWED);
     }
     
@@ -151,10 +148,18 @@ public class CustomResponseEntityExceptionHandler extends ResponseEntityExceptio
             HttpStatus status, WebRequest request)
     {
         String error = ex.getParameterName() + " parameter is missing";
-    
+        
         ApiException apiResponse =
                 new ApiException(HttpStatus.BAD_REQUEST, ex.getLocalizedMessage(), error);
         return buildResponseEntity(apiResponse, HttpStatus.BAD_REQUEST);
+    }
+    
+    @ExceptionHandler({AccessDeniedException.class})
+    public ResponseEntity<Object> handleAll(AccessDeniedException ex)
+    {
+        ApiException apiResponse = new ApiException(
+                HttpStatus.FORBIDDEN, ex.getLocalizedMessage(), "Provide valid key");
+        return buildResponseEntity(apiResponse, HttpStatus.FORBIDDEN);
     }
     
     @ExceptionHandler({Exception.class})
