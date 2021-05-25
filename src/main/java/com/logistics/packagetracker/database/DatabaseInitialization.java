@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.data.mongodb.core.MongoTemplate;
 
 import java.time.ZonedDateTime;
 import java.util.Collections;
@@ -26,6 +27,9 @@ public class DatabaseInitialization
     
     @Autowired
     private PackageService packageService;
+    
+    @Autowired
+    MongoTemplate mongoTemplate;
     
     private Package pack;
     private TrackingDetail trackingDetail;

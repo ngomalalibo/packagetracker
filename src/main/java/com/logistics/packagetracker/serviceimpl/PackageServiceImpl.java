@@ -2,8 +2,7 @@ package com.logistics.packagetracker.serviceimpl;
 
 import com.google.common.base.Strings;
 import com.logistics.packagetracker.aspect.Loggable;
-import com.logistics.packagetracker.dataProvider.SortProperties;
-import com.logistics.packagetracker.database.MongoConnection;
+import com.logistics.packagetracker.database.MongoConfiguration;
 import com.logistics.packagetracker.entity.Package;
 import com.logistics.packagetracker.entity.TrackingDetail;
 import com.logistics.packagetracker.entity.TrackingDetailDTO;
@@ -11,7 +10,7 @@ import com.logistics.packagetracker.enumeration.PackageStatus;
 import com.logistics.packagetracker.exception.EntityNotFoundException;
 import com.logistics.packagetracker.exception.PackageStateException;
 import com.logistics.packagetracker.mapper.TrackerMapper;
-import com.logistics.packagetracker.repository.PackageDataRepository;
+import com.logistics.packagetracker.repository.PackageRepository;
 import com.logistics.packagetracker.service.PackageService;
 import com.logistics.packagetracker.util.DateConverter;
 import com.mongodb.client.AggregateIterable;
@@ -19,17 +18,22 @@ import com.mongodb.client.MongoCursor;
 import com.mongodb.client.model.Aggregates;
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.Sorts;
-import com.mongodb.client.model.Updates;
-import com.mongodb.client.result.InsertOneResult;
 import com.mongodb.client.result.UpdateResult;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Service;
 
 import java.time.ZonedDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 import static com.mongodb.client.model.Projections.*;
 
@@ -41,28 +45,22 @@ import static com.mongodb.client.model.Projections.*;
 public class PackageServiceImpl implements PackageService
 {
     @Autowired
-    private PackageDataRepository packageDataRepository;
+    private PackageRepository packageRepository;
     
     @Autowired
-    private MongoConnection mongoConnection;
+    private MongoConfiguration mongoConfiguration;
     
     @Autowired
     private TrackerMapper trackerMapper;
     
-    public PackageDataRepository getPackageDataRepository()
-    {
-        return packageDataRepository;
-    }
+    @Autowired
+    MongoTemplate mongoTemplate;
     
-    public MongoConnection getMongoConnection()
-    {
-        return mongoConnection;
-    }
     
     @Override
     public List<Package> findAllPackages()
     {
-        return packageDataRepository.getAllOfEntity();
+        return packageRepository.findAll();
     }
     
     @Override
@@ -72,19 +70,19 @@ public class PackageServiceImpl implements PackageService
         {
             throw new EntityNotFoundException("Provide a valid package ID");
         }
-        return packageDataRepository.getObjectById(id, mongoConnection.packages);
+        return packageRepository.findById(id).orElse(null);
     }
     
     @Override
     public boolean existsById(String id)
     {
-        return packageDataRepository.existsByID(id);
+        return packageRepository.existsById(id);
     }
     
     @Override
     public long count()
     {
-        return packageDataRepository.count();
+        return packageRepository.count();
     }
     
     @Override
@@ -92,19 +90,23 @@ public class PackageServiceImpl implements PackageService
     {
         if (track != null && !Strings.isNullOrEmpty(id))
         {
-            if (isPickedUp(id) && track.getStatus() == PackageStatus.PICKED_UP)
-            {
-                throw new PackageStateException("Package has already been picked up.");
-            }
-            else if (isDelivered(id) && track.getStatus() == PackageStatus.DELIVERED)
+            if (isDelivered(id))
             {
                 throw new PackageStateException("Package has already been delivered.");
             }
+            else if (isPickedUp(id) && track.getStatus() == PackageStatus.PICKED_UP)
+            {
+                throw new PackageStateException("Package has already been picked up.");
+            }
             
-            Bson match = Filters.eq("_id", new ObjectId(id));
+            Query query = Query.query(Criteria.where("_id").is(new ObjectId(id)));
+            
             track.setDateTime(System.currentTimeMillis());
-            Bson updArray = Updates.combine(Updates.push("trackingDetails", track), Updates.set("status", track.getStatus()));
-            UpdateResult updateResult = mongoConnection.packages.updateOne(match, updArray);
+            
+            Update update = new Update();
+            update.push("trackingDetails", track);
+            update.set("status", track.getStatus());
+            UpdateResult updateResult = mongoTemplate.updateFirst(query, update, mongoConfiguration.getDB_PACKAGES());
             if (updateResult.getModifiedCount() >= 1)
             {
                 return id;
@@ -138,10 +140,12 @@ public class PackageServiceImpl implements PackageService
             throw new EntityNotFoundException("Package not created. Provide tracker details along with package information in request body.");
         }
         entity.setCreatedDate(ZonedDateTime.now().format(DateConverter.formatter));
-        InsertOneResult result = mongoConnection.packages.insertOne(entity);
-        if (result.getInsertedId() != null)
+        Package insert = mongoTemplate.insert(entity, mongoConfiguration.getDB_PACKAGES());
+        System.out.println("insert ID:        " + insert.getId());
+        if (insert.getId() != null)
         {
-            ObjectId value = result.getInsertedId().asObjectId().getValue();
+            ObjectId value = new ObjectId(insert.getId());
+            ;
             entity.setId(value.toHexString());
             return entity;
         }
@@ -156,7 +160,7 @@ public class PackageServiceImpl implements PackageService
         Bson proj = Aggregates.project(fields(include("trackingDetails"), excludeId()));
         Bson match2 = Aggregates.match(Filters.in("trackingDetails.status", List.of(PackageStatus.PICKED_UP.toString())));
         List<Bson> pipeline = List.of(match, unwind, proj, match2);
-        AggregateIterable<Document> aggregate = mongoConnection.collection.aggregate(pipeline);
+        AggregateIterable<Document> aggregate = mongoConfiguration.getCollection().aggregate(pipeline);
         if (aggregate.iterator().hasNext())
         {
             return true;
@@ -172,7 +176,7 @@ public class PackageServiceImpl implements PackageService
         Bson proj = Aggregates.project(fields(include("trackingDetails"), excludeId()));
         Bson match2 = Aggregates.match(Filters.in("trackingDetails.status", List.of(PackageStatus.DELIVERED.toString())));
         List<Bson> pipeline = List.of(match, unwind, proj, match2);
-        AggregateIterable<Document> aggregate = mongoConnection.collection.aggregate(pipeline);
+        AggregateIterable<Document> aggregate = mongoConfiguration.getCollection().aggregate(pipeline);
         if (aggregate.iterator().hasNext())
         {
             return true;
@@ -187,7 +191,8 @@ public class PackageServiceImpl implements PackageService
         boolean isValid = Arrays.stream(PackageStatus.values()).anyMatch(e -> e.toString().equals(status));
         if (isValid)
         {
-            return packageDataRepository.getPackageByAnyProperty("status", status.toString(), List.of(new SortProperties("createdDate", false)));
+            Sort sort = Sort.by(Sort.Direction.DESC, "createdDate");
+            return packageRepository.findByStatus(status, sort).orElse(null);
         }
         throw new PackageStateException("Provide valid package status. Package status should be either PICKED_UP, IN_TRANSIT, WAREHOUSE or DELIVERED");
     }
@@ -203,7 +208,7 @@ public class PackageServiceImpl implements PackageService
         
         List<Bson> pipeline = List.of(match, unwind, projB, sort, limit);
         
-        AggregateIterable<Document> aggregate = mongoConnection.collection.aggregate(pipeline);
+        AggregateIterable<Document> aggregate = mongoConfiguration.getCollection().aggregate(pipeline);
         TrackingDetail td = new TrackingDetail();
         MongoCursor<Document> iterator = aggregate.iterator();
         if (aggregate.iterator().hasNext())
@@ -221,7 +226,7 @@ public class PackageServiceImpl implements PackageService
     }
     
     @Override
-    public  List<TrackingDetailDTO> getPackageTrackingHistory(String id)
+    public List<TrackingDetailDTO> getPackageTrackingHistory(String id)
     {
         Bson match = Aggregates.match(Filters.eq("_id", new ObjectId(id)));
         Bson unwind = Aggregates.unwind("$trackingDetails");
@@ -230,7 +235,7 @@ public class PackageServiceImpl implements PackageService
         
         List<Bson> pipeline = List.of(match, unwind, projB, sort);
         
-        AggregateIterable<Document> aggregate = mongoConnection.collection.aggregate(pipeline);
+        AggregateIterable<Document> aggregate = mongoConfiguration.getCollection().aggregate(pipeline);
         List<TrackingDetailDTO> tdList = new ArrayList<>();
         MongoCursor<Document> iterator = aggregate.iterator();
         if (aggregate.iterator().hasNext())
@@ -245,6 +250,6 @@ public class PackageServiceImpl implements PackageService
             TrackingDetailDTO dto = trackerMapper.convertToDto(trackingDetail, id);
             tdList.add(dto);
         }
-        return  tdList;
+        return tdList;
     }
 }

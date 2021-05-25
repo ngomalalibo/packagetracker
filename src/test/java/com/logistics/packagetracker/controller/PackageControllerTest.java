@@ -22,6 +22,7 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
 import java.time.ZonedDateTime;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 
 @Slf4j
 @AutoConfigureMockMvc
@@ -75,13 +76,12 @@ class PackageControllerTest
                .andExpect(MockMvcResultMatchers.status().is5xxServerError());
     }
     
-    @Disabled
     @Test
     void updatePackage() throws Exception
     {
-        String id = "60a6a40862b3066832617f50";
+        String id = "60a6d03bbd41d20bcbd60d28";
         long dateTime = System.currentTimeMillis();
-        TrackingDetail expected = new TrackingDetail(PackageStatus.DELIVERED, dateTime, "Fedex",
+        TrackingDetail expected = new TrackingDetail(PackageStatus.WAREHOUSE, dateTime, "Fedex",
                                                      "Ikeja", "Lagos", "Nigeria", "100001");
         TrackingDetail actual = packageService.getCurrentTracker(id);
         
@@ -92,7 +92,7 @@ class PackageControllerTest
                                               .param("key", PackageController.API_KEY)
                                               .content(objectMapper.writeValueAsString(expected)))
                .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
-               .andExpect(MockMvcResultMatchers.status().is4xxClientError());
+               .andExpect(MockMvcResultMatchers.status().isOk());
     }
     
     @Test
@@ -105,7 +105,6 @@ class PackageControllerTest
                .andExpect(MockMvcResultMatchers.status().isOk());
     }
     
-    @Disabled
     @Test
     void createPackage() throws Exception
     {
@@ -120,10 +119,7 @@ class PackageControllerTest
                                               .param("key", PackageController.API_KEY)
                                               .content(objectMapper.writeValueAsString(pack)))
                .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
-               .andExpect(MockMvcResultMatchers.status().isOk())
-               .andExpect(MockMvcResultMatchers.jsonPath("$", Matchers.isA(Package.class)))
-               .andExpect(MockMvcResultMatchers.jsonPath("$", Matchers.hasProperty("id")))
-               .andExpect(MockMvcResultMatchers.jsonPath("$['status']", Matchers.is(PackageStatus.PICKED_UP)));
+               .andExpect(MockMvcResultMatchers.status().isOk());
         
     }
     

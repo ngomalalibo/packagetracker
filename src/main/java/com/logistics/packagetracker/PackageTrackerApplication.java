@@ -7,6 +7,7 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
+import org.springframework.data.mongodb.repository.config.EnableMongoRepositories;
 
 @OpenAPIDefinition(info = @Info(title = "Package Tracker API Documentation",
         version = "v0.0.1",
@@ -15,6 +16,7 @@ import org.springframework.boot.web.servlet.support.SpringBootServletInitializer
                 url = "http://www.google.com")))
 @Slf4j
 @SpringBootApplication
+@EnableMongoRepositories(basePackages = "com.logistics.packagetracker.repository")
 public class PackageTrackerApplication extends SpringBootServletInitializer
 {
     @Override

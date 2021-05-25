@@ -5,6 +5,7 @@ import com.logistics.packagetracker.entity.TrackingDetail;
 import com.logistics.packagetracker.enumeration.PackageStatus;
 import com.logistics.packagetracker.service.PackageService;
 import com.logistics.packagetracker.util.DateConverter;
+import com.logistics.packagetracker.util.GenerateTrackingCode;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -15,7 +16,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 import java.time.ZonedDateTime;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @AutoConfigureMockMvc
 @SpringBootTest
@@ -52,8 +54,8 @@ class PackageServiceImplTest
     void existsById()
     {
         String id = "60a6a40862b3066832617f50";
-        packageService.existsById(id);
-        assertTrue(packageService.existsById(id));
+        boolean exists = packageService.existsById(id);
+        assertTrue(exists);
     }
     
     @Test
@@ -65,13 +67,12 @@ class PackageServiceImplTest
         assertEquals(expected, actual);
     }
     
-    @Disabled
     @Test
     void trackPackage()
     {
-        String id = "60a6a40862b3066832617f50";
+        String id = "60a6d03bbd41d20bcbd60d28";
         long datetime = System.currentTimeMillis();
-        TrackingDetail expected = new TrackingDetail(PackageStatus.IN_TRANSIT, datetime, "inSource", "inCity", "inState", "inCountry", "inZip");
+        TrackingDetail expected = new TrackingDetail(PackageStatus.WAREHOUSE, datetime, "inSource", "inCity", "inState", "inCountry", "inZip");
         String s = packageService.trackPackage(expected, id);
         TrackingDetail actual = packageService.getCurrentTracker(s);
         
@@ -101,7 +102,7 @@ class PackageServiceImplTest
         PackageStatus ps = PackageStatus.PICKED_UP;
         long expected = packageService.count();
         
-        long actual = packageService.findByStatus(ps.toString()).size()+2;
+        long actual = packageService.findByStatus(ps.toString()).size() + 3;
         assertEquals(expected, actual);
         
         ps = PackageStatus.DELIVERED;
@@ -113,11 +114,10 @@ class PackageServiceImplTest
         
     }
     
-    @Disabled
     @Test
     void createPackage()
     {
-        Package expected = new Package("TA34I", PackageStatus.PICKED_UP, ZonedDateTime.now().format(DateConverter.formatter),
+        Package expected = new Package(GenerateTrackingCode.generateTrackingCode(), PackageStatus.PICKED_UP, ZonedDateTime.now().format(DateConverter.formatter),
                                        30.9, ZonedDateTime.now().plusDays(6).format(DateConverter.formatter), List.of(new TrackingDetail()));
         Package actual = packageService.createPackage(expected);
         assertEquals(expected.getTrackingCode(), actual.getTrackingCode());

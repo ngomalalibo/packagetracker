@@ -25,10 +25,7 @@ import java.util.List;
 @RequestMapping("/api/package")
 public class PackageController
 {
-    @Autowired
-    private TrackerMapper trackerMapper;
-    
-    @Autowired
+   @Autowired
     private PackageService packageService;
     
     public static final String API_KEY = System.getenv().get("PACKAGETRACKER_KEY"); // temporary security key for the end points kept in an environment variable

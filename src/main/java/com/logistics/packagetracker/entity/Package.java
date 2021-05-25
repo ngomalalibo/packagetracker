@@ -7,6 +7,8 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 import org.bson.codecs.pojo.annotations.BsonProperty;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -15,6 +17,7 @@ import java.util.List;
 @Setter
 @NoArgsConstructor
 @ToString
+@Document(collection = "packages")
 public class Package
 {
     /**
@@ -22,6 +25,7 @@ public class Package
      */
     @BsonProperty("_id")
     @JsonProperty("_id")
+    @Id
     private String id;
     private String trackingCode;
     private PackageStatus status;
