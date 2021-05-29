@@ -27,7 +27,7 @@ I opted not to use Spring Data Mongo for two reasons, query performance and comp
 
 There are a total of 29 unit and Integration tests all passing. A few have disabled as they are not idempotent and will alter the test cases if run.
 
-![](tests.JPG)
+![](tests.JPG 150*300)
 
 I have used a MongoDB database along with Spring Boot to implement this API. The Mongo DB is on Mongo Atlas. 
 
