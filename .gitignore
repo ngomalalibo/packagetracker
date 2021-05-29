@@ -27,6 +27,8 @@ target/
 *.pdf
 *.csv
 
+!tests.JPG
+
 ### NetBeans ###
 /nbproject/private/
 /nbbuild/
