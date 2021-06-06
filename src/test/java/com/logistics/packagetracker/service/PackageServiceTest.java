@@ -104,19 +104,19 @@ class PackageServiceTest
     }
     
     @Test
-    void isPickedUpAndDelivered()
+    void statusExistsInPackageHistory()
     {
         String id = "60a6a1f04472cf6fade46233";
         boolean expected = true;
         
-        Mockito.when(packageService.isPickedUp(id)).thenReturn(expected);
-        boolean actual = packageService.isPickedUp(id);
+        Mockito.when(packageService.statusExistsInPackageHistory(id, PackageStatus.PICKED_UP)).thenReturn(expected);
+        boolean actual = packageService.statusExistsInPackageHistory(id, PackageStatus.PICKED_UP);
         assertTrue(actual);
         expected = false;
-        Mockito.when(packageService.isDelivered(id)).thenReturn(expected);
-        expected = packageService.isDelivered(id);
+        Mockito.when(packageService.statusExistsInPackageHistory(id, PackageStatus.DELIVERED)).thenReturn(expected);
+        expected = packageService.statusExistsInPackageHistory(id, PackageStatus.DELIVERED);
         assertFalse(expected);
-        Mockito.verify(packageService, Mockito.times(1)).isDelivered(id);
+        Mockito.verify(packageService, Mockito.times(1)).statusExistsInPackageHistory(id, PackageStatus.DELIVERED);
         
     }
     

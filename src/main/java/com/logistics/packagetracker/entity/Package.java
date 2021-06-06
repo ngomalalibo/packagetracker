@@ -44,5 +44,4 @@ public class Package
         this.estDeliveryDate = estDeliveryDate;
         this.trackingDetails = trackingDetails;
     }
-    
 }

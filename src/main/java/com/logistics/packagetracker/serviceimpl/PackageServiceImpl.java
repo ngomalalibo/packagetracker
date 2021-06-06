@@ -90,11 +90,11 @@ public class PackageServiceImpl implements PackageService
     {
         if (track != null && !Strings.isNullOrEmpty(id))
         {
-            if (isDelivered(id))
+            if(statusExistsInPackageHistory(id, PackageStatus.DELIVERED))
             {
                 throw new PackageStateException("Package has already been delivered.");
             }
-            else if (isPickedUp(id) && track.getStatus() == PackageStatus.PICKED_UP)
+            else if (statusExistsInPackageHistory(id, PackageStatus.PICKED_UP) && track.getStatus() == PackageStatus.PICKED_UP)
             {
                 throw new PackageStateException("Package has already been picked up.");
             }
@@ -152,29 +152,12 @@ public class PackageServiceImpl implements PackageService
         return null;
     }
     
-    @Override
-    public boolean isPickedUp(String id)
+    public boolean statusExistsInPackageHistory(String id, PackageStatus status)
     {
         Bson match = Aggregates.match(Filters.and(Filters.eq("_id", new ObjectId(id))));
         Bson unwind = Aggregates.unwind("$trackingDetails");
         Bson proj = Aggregates.project(fields(include("trackingDetails"), excludeId()));
-        Bson match2 = Aggregates.match(Filters.in("trackingDetails.status", List.of(PackageStatus.PICKED_UP.toString())));
-        List<Bson> pipeline = List.of(match, unwind, proj, match2);
-        AggregateIterable<Document> aggregate = mongoConfiguration.getCollection().aggregate(pipeline);
-        if (aggregate.iterator().hasNext())
-        {
-            return true;
-        }
-        return false;
-    }
-    
-    @Override
-    public boolean isDelivered(String id)
-    {
-        Bson match = Aggregates.match(Filters.and(Filters.eq("_id", new ObjectId(id))));
-        Bson unwind = Aggregates.unwind("$trackingDetails");
-        Bson proj = Aggregates.project(fields(include("trackingDetails"), excludeId()));
-        Bson match2 = Aggregates.match(Filters.in("trackingDetails.status", List.of(PackageStatus.DELIVERED.toString())));
+        Bson match2 = Aggregates.match(Filters.in("trackingDetails.status", List.of(status.toString())));
         List<Bson> pipeline = List.of(match, unwind, proj, match2);
         AggregateIterable<Document> aggregate = mongoConfiguration.getCollection().aggregate(pipeline);
         if (aggregate.iterator().hasNext())

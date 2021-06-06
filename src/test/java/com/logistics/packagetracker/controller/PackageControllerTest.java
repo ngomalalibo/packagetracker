@@ -10,7 +10,6 @@ import com.logistics.packagetracker.util.GenerateTrackingCode;
 import lombok.extern.slf4j.Slf4j;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -22,7 +21,11 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
 import java.time.ZonedDateTime;
 import java.util.Collections;
-import java.util.LinkedHashMap;
+import java.util.List;
+
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.isA;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 
 @Slf4j
 @AutoConfigureMockMvc
@@ -52,7 +55,11 @@ class PackageControllerTest
                                               .contentType(MediaType.APPLICATION_JSON_VALUE)
                                               .param("key", PackageController.API_KEY))
                .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
-               .andExpect(MockMvcResultMatchers.status().isOk());
+               .andExpect(MockMvcResultMatchers.status().isOk())
+               .andExpect(jsonPath("$.status", is("OK")))
+               .andExpect(jsonPath("$", Matchers.hasKey("timestamp")))
+               .andExpect(jsonPath("$.responseBody", isA(List.class)))
+               .andExpect(jsonPath("$.responseBody[0].status", is("DELIVERED")));
     }
     
     @Test

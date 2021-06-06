@@ -88,11 +88,11 @@ class PackageServiceImplTest
     void isPickedUpOrDelivered()
     {
         String id = "60a6d03bbd41d20bcbd60d28";
-        boolean expected = packageService.isPickedUp(id);
+        boolean expected = packageService.statusExistsInPackageHistory(id, PackageStatus.PICKED_UP);
         assertTrue(expected);
         
         id = "60a6a40862b3066832617f50";
-        expected = packageService.isDelivered(id);
+        expected = packageService.statusExistsInPackageHistory(id, PackageStatus.DELIVERED);
         assertTrue(expected);
     }
     

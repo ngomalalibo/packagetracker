@@ -25,9 +25,7 @@ public interface PackageService
     
     Package createPackage(Package entity);
     
-    boolean isPickedUp(String id);
-    
-    boolean isDelivered(String id);
+    boolean statusExistsInPackageHistory(String id, PackageStatus status);
     
     List<Package> findByStatus(String status);
     

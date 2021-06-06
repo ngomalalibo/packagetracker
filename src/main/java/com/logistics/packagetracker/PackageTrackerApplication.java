@@ -15,8 +15,8 @@ import org.springframework.data.mongodb.repository.config.EnableMongoRepositorie
         license = @io.swagger.v3.oas.annotations.info.License(name = "Package Tracker",
                 url = "http://www.google.com")))
 @Slf4j
-@SpringBootApplication
 @EnableMongoRepositories(basePackages = "com.logistics.packagetracker.repository")
+@SpringBootApplication
 public class PackageTrackerApplication extends SpringBootServletInitializer
 {
     @Override
